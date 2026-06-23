@@ -84,7 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto custom-scrollbar">
-        {navGroups.map((group, idx) => (
+        {navigationMenu.map((group, idx) => (
           <div key={idx}>
             <h4 className="px-3 mb-2 text-[9px] font-black uppercase tracking-[0.3em] text-slate-600">
               {group.label}
