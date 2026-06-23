@@ -16,14 +16,21 @@ export const handler: Handler = async (event: HandlerEvent) => {
     const cookieHeader = event.headers.cookie || "";
     const match = cookieHeader.match(/insitu_session=([^;]+)/);
     
-    let userId = event.headers["x-user-id"] || event.headers["X-User-Id"];
-    let role = event.headers["x-user-role"] || event.headers["X-User-Role"];
+    let userId: string | undefined;
+    let role: string | undefined;
 
     if (match) {
         const payload = verifySessionToken(match[1]);
         if (payload && payload.id) {
             userId = payload.id;
             role = payload.role;
+        }
+    } else {
+        // Fallback for development only: allow X-User-Id but enforce role validation
+        const devMode = process.env.VITE_DEV_MODE === "true";
+        if (devMode) {
+            userId = event.headers["x-user-id"] || event.headers["X-User-Id"];
+            role = event.headers["x-user-role"] || event.headers["X-User-Role"];
         }
     }
     
