@@ -192,7 +192,7 @@ const AuthGate: React.FC<AuthGateProps> = ({ onLogin, onCancel, language = "es" 
   // Load Turnstile script once and render invisible widget
   useEffect(() => {
     turnstileService.loadScript().then((success) => {
-      if (success && TURNSTILE_SITE_KEY) {
+      if (success) {
         turnstileService.render("turnstile-widget", { size: "invisible" });
       }
     });
