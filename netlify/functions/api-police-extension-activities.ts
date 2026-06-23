@@ -77,7 +77,8 @@ export const handler: Handler = async (event: HandlerEvent) => {
             const body = parseBody();
             const { 
                 client_id, brand, activity_type, platform, campaign_name, 
-                budget, max_budget_allowed, status, utm_url, campaign_id, adset_id, ad_id 
+                budget, budget_type, start_date, end_date, objective,
+                max_budget_allowed, status, utm_url, campaign_id, adset_id, ad_id 
             } = body;
 
             if (!activity_type || !platform || !campaign_name) {
@@ -89,11 +90,13 @@ export const handler: Handler = async (event: HandlerEvent) => {
             await runQuery(sql => sql`
                 INSERT INTO police_extension_activities (
                     user_id, client_id, brand, activity_type, platform, campaign_name,
-                    budget, max_budget_allowed, status, utm_url, campaign_id, adset_id, ad_id,
+                    budget, budget_type, start_date, end_date, objective, 
+                    max_budget_allowed, status, utm_url, campaign_id, adset_id, ad_id,
                     created_at
                 ) VALUES (
                     ${userId}, ${client_id || null}, ${brand || null}, ${activity_type}, ${platform}, ${campaign_name},
-                    ${budget ? Number(budget) : null}, ${max_budget_allowed ? Number(max_budget_allowed) : null}, ${status || null}, ${utm_url || null},
+                    ${budget ? Number(budget) : null}, ${budget_type || null}, ${start_date || null}, ${end_date || null}, ${objective || null},
+                    ${max_budget_allowed ? Number(max_budget_allowed) : null}, ${status || null}, ${utm_url || null},
                     ${campaign_id || null}, ${adset_id || null}, ${ad_id || null},
                     ${timestamp}
                 )

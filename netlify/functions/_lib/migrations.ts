@@ -603,6 +603,10 @@ export async function runMigrations(): Promise<void> {
                 platform TEXT NOT NULL,
                 campaign_name TEXT NOT NULL,
                 budget NUMERIC(12,2),
+                budget_type TEXT,
+                start_date TEXT,
+                end_date TEXT,
+                objective TEXT,
                 max_budget_allowed NUMERIC(12,2),
                 status TEXT,
                 utm_url TEXT,
@@ -614,6 +618,15 @@ export async function runMigrations(): Promise<void> {
                 deleted_at BIGINT
             )
         `;
+        const extActCols = [
+            `ALTER TABLE police_extension_activities ADD COLUMN IF NOT EXISTS budget_type TEXT`,
+            `ALTER TABLE police_extension_activities ADD COLUMN IF NOT EXISTS start_date TEXT`,
+            `ALTER TABLE police_extension_activities ADD COLUMN IF NOT EXISTS end_date TEXT`,
+            `ALTER TABLE police_extension_activities ADD COLUMN IF NOT EXISTS objective TEXT`,
+        ];
+        for (const col of extActCols) {
+            await sql.unsafe(col).catch(() => {});
+        }
 
         // ── RLS — Row Level Security (idempotent) ──────────────────────────────
         // postgres.js via pgBouncer uses the superuser role which bypasses RLS.

@@ -221,12 +221,20 @@ const InsituValidator = {
       }
     } catch (e) {}
 
+    const dates = this.getCampaignDates();
+    const budgetType = this.getCampaignBudgetType();
+    const objective = this.extractObjectiveFromName(campaignName);
+
     const event = {
       timestamp: new Date().toISOString(),
       platform,
       level,
       campaignName,
       isValid,
+      budgetType,
+      startDate: dates.startDate,
+      endDate: dates.endDate,
+      objective,
       errors: Array.isArray(errors) ? errors : [errors]
     };
 
@@ -251,6 +259,10 @@ const InsituValidator = {
         platform: platform,
         campaign_name: campaignName,
         status: isValid ? 'valid' : 'invalid',
+        budget_type: budgetType,
+        start_date: dates.startDate,
+        end_date: dates.endDate,
+        objective: objective,
         campaign_id,
         adset_id,
         ad_id
@@ -286,6 +298,93 @@ const InsituValidator = {
         syncActivity(token);
       }
     }
+  },
+
+  getCampaignDates() {
+    let startDate = null;
+    let endDate = null;
+
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+      const type = (input.getAttribute('type') || '').toLowerCase();
+      const name = (input.name || '').toLowerCase();
+      const id = (input.id || '').toLowerCase();
+      const aria = (input.getAttribute('aria-label') || '').toLowerCase();
+      const placeholder = (input.getAttribute('placeholder') || '').toLowerCase();
+      const testid = (input.getAttribute('data-testid') || '').toLowerCase();
+      const textRef = `${name} ${id} ${aria} ${placeholder} ${testid}`.toLowerCase();
+
+      if (textRef.includes('start') || textRef.includes('inicio') || textRef.includes('desde')) {
+        const d = this.parseFlexibleDate(input.value);
+        if (d) startDate = d;
+      }
+      if (textRef.includes('end') || textRef.includes('fin') || textRef.includes('hasta') || textRef.includes('finaliza')) {
+        const d = this.parseFlexibleDate(input.value);
+        if (d) endDate = d;
+      }
+    });
+
+    if (!startDate || !endDate) {
+      const textElements = document.querySelectorAll('span, div, p');
+      textElements.forEach(el => {
+        if (el.children.length === 0 && el.textContent.length < 50) {
+          const parentText = (el.parentElement?.innerText || '').toLowerCase();
+          if (parentText.includes('inicio') || parentText.includes('start') || parentText.includes('desde')) {
+            const d = this.parseFlexibleDate(el.textContent);
+            if (d && !startDate) startDate = d;
+          }
+          if (parentText.includes('fin') || parentText.includes('end') || parentText.includes('hasta') || parentText.includes('finaliza')) {
+            const d = this.parseFlexibleDate(el.textContent);
+            if (d && !endDate) endDate = d;
+          }
+        }
+      });
+    }
+
+    return {
+      startDate: startDate ? startDate.toISOString() : null,
+      endDate: endDate ? endDate.toISOString() : null
+    };
+  },
+
+  getCampaignBudgetType() {
+    const budgetSelectors = [
+      'input[data-testid*="budget"]', 'input[aria-label*="presupuesto" i]', 'input[aria-label*="budget" i]',
+      'input[placeholder*="presupuesto" i]', 'input[placeholder*="importe" i]',
+      'input[id*="budget" i]', 'input[name*="budget" i]'
+    ];
+    let isDaily = true; // default
+    let found = false;
+    for (const selector of budgetSelectors) {
+      const inputs = document.querySelectorAll(selector);
+      if (inputs.length > 0) {
+        isDaily = this.detectBudgetIsDaily(inputs[0]);
+        found = true;
+        break;
+      }
+    }
+    return isDaily ? 'daily' : 'lifetime';
+  },
+
+  extractObjectiveFromName(name) {
+    if (!name) return null;
+    const policies = window.insituPolicies || {};
+    const rules = policies.campaign_rules || [
+        { type: 'pais', label: 'País' },
+        { type: 'canal', label: 'Canal' },
+        { type: 'objetivo', label: 'Objetivo' },
+        { type: 'producto', label: 'Producto' },
+        { type: 'anio', label: 'Año/Temporada' }
+    ];
+    
+    const objectiveIndex = rules.findIndex(r => r.type === 'objetivo');
+    if (objectiveIndex !== -1) {
+      const segments = name.trim().split('_');
+      if (segments[objectiveIndex]) {
+        return this.OBJECTIVES[segments[objectiveIndex]] || segments[objectiveIndex];
+      }
+    }
+    return null;
   },
 
   parseFlexibleDate(str) {
@@ -342,45 +441,9 @@ const InsituValidator = {
   },
 
   getCampaignDays() {
-    let startDate = null;
-    let endDate = null;
-
-    const inputs = document.querySelectorAll('input');
-    inputs.forEach(input => {
-      const type = (input.getAttribute('type') || '').toLowerCase();
-      const name = (input.name || '').toLowerCase();
-      const id = (input.id || '').toLowerCase();
-      const aria = (input.getAttribute('aria-label') || '').toLowerCase();
-      const placeholder = (input.getAttribute('placeholder') || '').toLowerCase();
-      const testid = (input.getAttribute('data-testid') || '').toLowerCase();
-      const textRef = `${name} ${id} ${aria} ${placeholder} ${testid}`.toLowerCase();
-
-      if (textRef.includes('start') || textRef.includes('inicio') || textRef.includes('desde')) {
-        const d = this.parseFlexibleDate(input.value);
-        if (d) startDate = d;
-      }
-      if (textRef.includes('end') || textRef.includes('fin') || textRef.includes('hasta') || textRef.includes('finaliza')) {
-        const d = this.parseFlexibleDate(input.value);
-        if (d) endDate = d;
-      }
-    });
-
-    if (!startDate || !endDate) {
-      const textElements = document.querySelectorAll('span, div, p');
-      textElements.forEach(el => {
-        if (el.children.length === 0 && el.textContent.length < 50) {
-          const parentText = (el.parentElement?.innerText || '').toLowerCase();
-          if (parentText.includes('inicio') || parentText.includes('start') || parentText.includes('desde')) {
-            const d = this.parseFlexibleDate(el.textContent);
-            if (d && !startDate) startDate = d;
-          }
-          if (parentText.includes('fin') || parentText.includes('end') || parentText.includes('hasta') || parentText.includes('finaliza')) {
-            const d = this.parseFlexibleDate(el.textContent);
-            if (d && !endDate) endDate = d;
-          }
-        }
-      });
-    }
+    let { startDate, endDate } = this.getCampaignDates();
+    if (startDate) startDate = new Date(startDate);
+    if (endDate) endDate = new Date(endDate);
 
     if (startDate && endDate) {
       const diffTime = endDate.getTime() - startDate.getTime();

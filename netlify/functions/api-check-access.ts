@@ -48,7 +48,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
     try {
         const rows = await runQuery(async (sql) => 
-            await sql`SELECT * FROM user_tools WHERE user_id = ${userId} AND tool_id = ${toolId}`
+            await sql`SELECT * FROM user_tools WHERE user_id = ${userId} AND tool_name = ${toolId}`
         );
 
         if (rows && rows.length > 0) {
