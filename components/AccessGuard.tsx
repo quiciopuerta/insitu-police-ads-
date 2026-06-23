@@ -20,13 +20,23 @@ export const AccessGuard: React.FC<AccessGuardProps> = ({ children, toolId, lang
                 return;
             }
 
+            if (currentUser.role === 'superAdmin') {
+                setHasAccess(true);
+                setLoading(false);
+                return;
+            }
+
             try {
                 const API_URL = import.meta.env.VITE_API_URL || 'https://insitu.company/api';
                 // Llama al backend local del subdominio para verificar acceso contra la BD
                 const res = await fetch(`/api/check-access?tool=${toolId}`, {
                     method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include' // Enviar cookie JWT
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': currentUser.id,
+                        'X-User-Role': currentUser.role
+                    },
+                    credentials: 'include' // Enviar cookie JWT si existe
                 });
 
                 if (res.ok) {

@@ -16,17 +16,20 @@ export const handler: Handler = async (event: HandlerEvent) => {
     const cookieHeader = event.headers.cookie || "";
     const match = cookieHeader.match(/insitu_session=([^;]+)/);
     
-    if (!match) {
+    let userId = event.headers["x-user-id"] || event.headers["X-User-Id"];
+    let role = event.headers["x-user-role"] || event.headers["X-User-Role"];
+
+    if (match) {
+        const payload = verifySessionToken(match[1]);
+        if (payload && payload.id) {
+            userId = payload.id;
+            role = payload.role;
+        }
+    }
+    
+    if (!userId) {
         return json(401, { error: "No autorizado", hasAccess: false });
     }
-
-    const payload = verifySessionToken(match[1]);
-    if (!payload || !payload.id) {
-        return json(401, { error: "Sesión inválida", hasAccess: false });
-    }
-
-    const userId = payload.id;
-    const role = payload.role;
     
     // El superAdmin siempre tiene acceso a todo
     if (role === "superAdmin") {
