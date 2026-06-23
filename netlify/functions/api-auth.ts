@@ -241,13 +241,18 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             });
 
             const insertResult = await runQuery(async (sql) => {
+                const countRes = await sql`SELECT count(*) FROM users`;
+                const isFirst = countRes[0].count === '0' || countRes[0].count === 0;
+                const role = isFirst ? 'superAdmin' : 'user';
+                const status = isFirst ? 'approved' : 'pending';
+
                 const hashedPassword = hashPassword(password);
                 return await sql`
                   INSERT INTO users (id, username, password, email, first_name, last_name, phone, role, approval_status, picture, last_login, subscription, usage_limit, brand_profiles, referred_by)
                   VALUES (
                     ${id}, ${username}, ${hashedPassword}, ${email},
                     ${firstName}, ${lastName}, ${phone || null},
-                    'user', 'pending',
+                    ${role}, ${status},
                     ${"https://ui-avatars.com/api/?name=" + (firstName || "") + "+" + (lastName || "") + "&background=FF497C&color=fff"},
                     ${Date.now()}, ${subscription}, ${trialTokens}, '[]', ${body.referredBy || null}
                   )
@@ -352,14 +357,20 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
                 const id = randomUUID();
                 const nameParts = (name || "").split(" ");
                 const linkedObj = JSON.stringify({ name, email, picture, accessToken, method: "oauth" });
-                await runQuery(async (sql) => await sql`
-                  INSERT INTO users (id, username, email, first_name, last_name, role, approval_status, picture, last_login, subscription, usage_limit, brand_profiles, linked_google_ads, referred_by)
-                  VALUES (
-                    ${id}, ${email}, ${email},
-                    ${nameParts[0] || ""}, ${nameParts.slice(1).join(" ") || ""},
-                    'user', 'approved', ${picture || ""}, ${now}, ${trialSub}, 500, '[]', ${linkedObj}, ${body.referredBy || null}
-                  )
-                `);
+                await runQuery(async (sql) => {
+                    const countRes = await sql`SELECT count(*) FROM users`;
+                    const isFirst = countRes[0].count === '0' || countRes[0].count === 0;
+                    const role = isFirst ? 'superAdmin' : 'user';
+
+                    await sql`
+                      INSERT INTO users (id, username, email, first_name, last_name, role, approval_status, picture, last_login, subscription, usage_limit, brand_profiles, linked_google_ads, referred_by)
+                      VALUES (
+                        ${id}, ${email}, ${email},
+                        ${nameParts[0] || ""}, ${nameParts.slice(1).join(" ") || ""},
+                        ${role}, 'approved', ${picture || ""}, ${now}, ${trialSub}, 500, '[]', ${linkedObj}, ${body.referredBy || null}
+                      )
+                    `;
+                });
                 const created = await runQuery(async (sql) => await sql`SELECT * FROM users WHERE id = ${id}`);
                 if (!created || !created.length) return json(500, { error: "Error creando usuario de Google" });
                 user = hydrateUser(created[0]);
