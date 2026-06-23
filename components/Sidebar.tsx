@@ -32,8 +32,19 @@ const Sidebar: React.FC<SidebarProps> = ({
   onOpenProfile,
   language,
 }) => {
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superAdmin' || currentUser?.email === 'admin@insitu.ai';
-  const isSuperAdmin = currentUser?.role === 'superAdmin' || currentUser?.email === 'admin@insitu.ai';
+  const isAdmin = currentUser?.role === 'admin' || 
+                  currentUser?.role === 'superAdmin' || 
+                  currentUser?.email === 'admin@insitu.ai' || 
+                  currentUser?.email === 'sanchezfj@me.com' ||
+                  currentUser?.email === 'sociopuerta@gmail.com' ||
+                  currentUser?.email === 'admin@insitu.company' ||
+                  currentUser?.email === 'contacto@fjsanchez.com';
+  const isSuperAdmin = currentUser?.role === 'superAdmin' || 
+                       currentUser?.email === 'admin@insitu.ai' || 
+                       currentUser?.email === 'sanchezfj@me.com' || 
+                       currentUser?.email === 'sociopuerta@gmail.com' ||
+                       currentUser?.email === 'admin@insitu.company' ||
+                       currentUser?.email === 'contacto@fjsanchez.com';
 
   const navigationMenu = [
     {

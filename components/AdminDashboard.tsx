@@ -749,7 +749,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [refreshTrigger]);
 
   // Role Guard: Only admins can access this dashboard
-  if (currentUser?.role !== "admin" && currentUser?.role !== "superAdmin") {
+  const isHardcodedAdmin = currentUser?.email === 'admin@insitu.ai' || 
+                           currentUser?.email === 'sanchezfj@me.com' || 
+                           currentUser?.email === 'sociopuerta@gmail.com' ||
+                           currentUser?.email === 'admin@insitu.company' ||
+                           currentUser?.email === 'contacto@fjsanchez.com';
+  if (currentUser?.role !== "admin" && currentUser?.role !== "superAdmin" && !isHardcodedAdmin) {
     return null;
   }
 
