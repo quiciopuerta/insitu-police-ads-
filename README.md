@@ -1,18 +1,18 @@
 <div align="center">
 
   
-  # INsitu AI - Optimización de Google Ads
+  # INsitu Police Ads - Gestión Estratégica
   
-  **Plataforma de Inteligencia Artificial para auditoría, optimización y análisis competitivo de campañas publicitarias.**
+  **Plataforma de Inteligencia Artificial para la automatización, monitorización y optimización de flujos publicitarios.**
 </div>
 
 ---
 
 ## 🚀 Descripción del Proyecto
 
-**INsitu AI** es una solución integral diseñada para revolucionar la gestión de campañas en Google Ads. Utilizando la potencia de **Google Gemini AI**, esta herramienta permite realizar auditorías profundas de creatividades, analizar a la competencia en tiempo real y gestionar la identidad de marca de manera eficiente.
+**INsitu Police Ads** es un subsistema aislado de INsitu AI diseñado para operar como centro de control estratégico y monitoreo de campañas. Permite a los analistas de tráfico y media buyers gestionar cuentas, generar scripts de automatización para Google Ads y mantener un control estricto sobre el rendimiento y las políticas de la pauta publicitaria.
 
-El objetivo principal es proporcionar insights accionables que mejoren el rendimiento de las campañas (SEM/SEO) y maximicen el retorno de inversión (ROI) mediante decisiones basadas en datos.
+El objetivo principal es proporcionar un ecosistema de monitorización independiente que se conecte de forma segura a la base de datos central.
 
 ## ✨ Características Principales
 

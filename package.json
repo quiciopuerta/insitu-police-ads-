@@ -1,8 +1,8 @@
 {
-  "name": "insitu-ads",
+  "name": "insitu-police-ads",
   "private": true,
   "version": "1.0.0",
-  "description": "Plataforma integral de optimización y planning de advertising impulsada por IA. Herramientas de auditoría creativa, análisis competitivo y gestión de identidad de marca.",
+  "description": "Plataforma INsitu Police Ads. Sistema de gestión de publicidad, análisis competitivo y scripts estratégicos.",
   "author": "INsitu AI / Franklin Sanchez",
   "license": "Proprietary",
   "type": "module",
