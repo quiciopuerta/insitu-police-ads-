@@ -151,7 +151,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ currentUser }) => {
                   required
                 >
                   <option value="" className="bg-[#0b0e17]">Selecciona cliente...</option>
-                  {clients.map(c => (
+                  {clients?.map(c => (
                     <option key={c.id} value={c.id} className="bg-[#0b0e17]">{c.name}</option>
                   ))}
                 </select>
@@ -165,7 +165,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ currentUser }) => {
                   required
                 >
                   <option value="" className="bg-[#0b0e17]">Selecciona plataforma...</option>
-                  {PLATFORMS.map(p => (
+                  {PLATFORMS?.map(p => (
                     <option key={p.id} value={p.id} className="bg-[#0b0e17]">{p.icon} {p.name}</option>
                   ))}
                 </select>
@@ -262,7 +262,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ currentUser }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {accounts.map(account => (
+              {accounts?.map(account => (
                 <tr key={account.id} className="hover:bg-white/[0.02]">
                   <td className="px-6 py-4">
                     <span className="flex items-center gap-2 text-white">

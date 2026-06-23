@@ -480,6 +480,38 @@ const InsituValidator = {
     return true; // Default
   },
 
+  detectUIObjective() {
+    try {
+      const selectedElements = document.querySelectorAll(
+        '[aria-selected="true"], [aria-checked="true"], input[type="radio"]:checked, .selected, .active, [role="tab"][aria-selected="true"]'
+      );
+      
+      let detectedObjectiveText = '';
+      for (const el of selectedElements) {
+        let text = (el.innerText || el.textContent || '').toLowerCase();
+        if (!text && el.id) {
+           const label = document.querySelector(`label[for="${el.id}"]`);
+           if (label) text = (label.innerText || label.textContent || '').toLowerCase();
+        }
+        if (!text && el.closest('div')) {
+           text = (el.closest('div').innerText || '').toLowerCase();
+        }
+        if (text.length > 0 && text.length < 150) {
+          detectedObjectiveText += ' ' + text;
+        }
+      }
+
+      if (detectedObjectiveText.includes('conversiones') || detectedObjectiveText.includes('ventas') || detectedObjectiveText.includes('sales') || detectedObjectiveText.includes('conversion')) return 'CONV';
+      if (detectedObjectiveText.includes('clientes potenciales') || detectedObjectiveText.includes('leads') || detectedObjectiveText.includes('lead generation')) return 'LEAD';
+      if (detectedObjectiveText.includes('tráfico') || detectedObjectiveText.includes('trafico') || detectedObjectiveText.includes('traffic') || detectedObjectiveText.includes('clics')) return 'TRAF';
+      if (detectedObjectiveText.includes('reconocimiento') || detectedObjectiveText.includes('awareness') || detectedObjectiveText.includes('alcance') || detectedObjectiveText.includes('reach')) return 'AW';
+
+      return null;
+    } catch(e) {
+      return null;
+    }
+  },
+
   updateCampaignDaysBadge() {
     try {
       const days = this.getCampaignDays();
@@ -523,11 +555,46 @@ const InsituValidator = {
       }
 
       const daysText = hasEndDate ? `${days} días` : `${days} días (Campaña Continua - Estimado 30 días)`;
+      
+      // Objective Validation Logic
+      let objectiveHtml = '';
+      const uiObjective = this.detectUIObjective();
+      
+      // Find the campaign name input to extract the intended objective
+      let campaignName = '';
+      const nameInputs = document.querySelectorAll('input[data-insitu-level="campaign"], input[name*="campaign"], input[placeholder*="campaña"]');
+      if (nameInputs.length > 0) {
+        campaignName = nameInputs[0].value || '';
+      }
+      
+      const nameObjectiveCode = this.extractObjectiveFromName(campaignName);
+      
+      if (nameObjectiveCode && uiObjective && nameObjectiveCode !== this.OBJECTIVES[uiObjective]) {
+        // Mismatch!
+        const expectedName = this.OBJECTIVES[uiObjective];
+        objectiveHtml = `
+          <div style="display:flex; align-items:center; gap:8px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <span style="font-size:16px;">⚠️</span>
+            <span style="color:#f87171;">Error de Objetivo: Nombraste la campaña como <strong>${nameObjectiveCode}</strong> pero la plataforma está configurada para <strong>${expectedName}</strong>.</span>
+          </div>
+        `;
+        // Bloquear publicación
+        if (window.insituErrorsCount !== undefined) window.insituErrorsCount++;
+      } else if (nameObjectiveCode) {
+        objectiveHtml = `
+          <div style="display:flex; align-items:center; gap:8px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <span style="font-size:16px;">🎯</span>
+            <span style="color:#4ade80;">Objetivo Detectado: <strong>${nameObjectiveCode}</strong></span>
+          </div>
+        `;
+      }
+
       badge.innerHTML = `
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:16px;">📅</span>
           <span>Duración de Campaña: <strong style="color:#f43f5e;">${daysText}</strong></span>
         </div>
+        ${objectiveHtml}
       `;
     } catch (e) {
       console.error('[insitu.company] Error updating campaign days badge:', e);

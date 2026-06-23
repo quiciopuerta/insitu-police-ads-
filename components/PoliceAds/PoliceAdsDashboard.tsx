@@ -192,7 +192,7 @@ export const PoliceAdsDashboard: React.FC<PoliceAdsDashboardProps> = ({ currentU
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {campaigns.slice(0,5).map(c => (
+                  {campaigns?.slice(0,5).map(c => (
                     <div key={c.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5">
                       <span className="text-sm text-white">{c.name}</span>
                       <span className="text-xs px-2 py-1 bg-white/10 rounded-md text-white/60">{c.status}</span>
@@ -210,7 +210,7 @@ export const PoliceAdsDashboard: React.FC<PoliceAdsDashboardProps> = ({ currentU
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {alerts.slice(0,5).map(a => (
+                  {alerts?.slice(0,5).map(a => (
                     <div key={a.id} className="flex items-center justify-between p-3 rounded-lg bg-[#ff477b]/10 border border-[#ff477b]/20">
                       <span className="text-sm text-[#ff477b]">{a.message}</span>
                       <span className="text-xs text-[#ff477b]/60">{new Date(a.created_at).toLocaleDateString()}</span>
@@ -245,12 +245,12 @@ export const PoliceAdsDashboard: React.FC<PoliceAdsDashboardProps> = ({ currentU
             <h3 className="text-lg font-bold text-[#ff477b]">Centro de Alertas</h3>
             <button
               onClick={() => {
-                const headers = ['ID', 'Mensaje', 'Campaña ID', 'Estado', 'Fecha'];
+                const headers = ['ID', 'Mensaje', 'Campaña ID', 'Estado', 'Fecha/Hora'];
                 const csvContent = [
                   headers.join(','),
-                  ...alerts.map(a => `"${a.id}","${a.message}","${a.campaign_id}","${a.status}","${new Date().toLocaleDateString()}"`)
+                  ...alerts?.map(a => `"${a.id}","${a.message}","${a.campaign_id}","${a.status}","${a.created_at ? new Date(a.created_at).toLocaleString() : ''}"`)
                 ].join('\n');
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = `police_alerts_${new Date().getTime()}.csv`;
@@ -268,7 +268,7 @@ export const PoliceAdsDashboard: React.FC<PoliceAdsDashboardProps> = ({ currentU
             </div>
           ) : (
             <div className="space-y-3">
-              {alerts.map(a => (
+              {alerts?.map(a => (
                 <div key={a.id} className="flex items-center justify-between p-4 rounded-lg bg-[#ff477b]/10 border border-[#ff477b]/20">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-[#ff477b] mt-0.5" />

@@ -236,7 +236,7 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ currentUser, onSucce
                 </div>
               ) : aiSuggestions?.suggestions?.length ? (
                 <>
-                  {aiSuggestions.suggestions.map((s, i) => (
+                  {aiSuggestions?.suggestions?.map((s, i) => (
                     <button
                       key={i}
                       type="button"
@@ -266,7 +266,7 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ currentUser, onSucce
                         <Sparkles className="w-3 h-3" /> Tips de Arquitectura
                       </p>
                       <ul className="text-xs text-white/60 space-y-1">
-                        {aiSuggestions.tips.map((tip, i) => (
+                        {aiSuggestions?.tips?.map((tip, i) => (
                           <li key={i}>• {tip}</li>
                         ))}
                       </ul>

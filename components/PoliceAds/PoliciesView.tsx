@@ -134,7 +134,8 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
   };
 
   const renderRuleEditor = (level: 'campaign_rules' | 'adset_rules' | 'ad_rules', title: string) => {
-    const rules = policies[level];
+    const rawRules = policies[level];
+    const rules = Array.isArray(rawRules) ? rawRules : [];
 
     return (
       <div className="bg-[#0b0e17] rounded-xl border border-white/5 p-6 mb-6">
@@ -144,7 +145,7 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
         </p>
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {rules.map((rule, index) => (
+          {rules?.map((rule, index) => (
             <div key={index} className="flex items-center gap-2 bg-[#1a1f36] px-3 py-2 rounded-lg border border-white/10 group">
               <GripVertical className="w-4 h-4 text-white/30 cursor-move" />
               <span className="text-sm font-semibold text-white">{rule.label}</span>
@@ -156,7 +157,7 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
               </button>
             </div>
           ))}
-          {rules.length === 0 && (
+          {!rules?.length && (
             <span className="text-sm text-white/30 italic">No hay reglas definidas. Nomenclatura libre.</span>
           )}
         </div>

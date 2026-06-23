@@ -46,44 +46,57 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
         if (event.httpMethod === "POST") {
             const body = JSON.parse(event.body || "{}");
-            const { 
-                id, organization_id, client_id, platform_account_id, 
-                name, platform, budget, max_budget_allowed, 
-                status, country, channel, objective, product, year 
-            } = body;
-
-            if (!id || !organization_id || !client_id || !platform_account_id || !name || !platform || !budget) {
-                return json(400, { error: "Missing required fields" });
-            }
-
             const timestamp = Date.now();
+            
+            const insertCampaigns = async (campaignsArray: any[]) => {
+                for (const camp of campaignsArray) {
+                    const { 
+                        id, organization_id, client_id, platform_account_id, 
+                        name, platform, budget, max_budget_allowed, 
+                        status, country, channel, objective, product, year 
+                    } = camp;
 
-            await runQuery(sql => sql`
-                INSERT INTO police_campaigns (
-                    id, user_id, organization_id, client_id, platform_account_id, 
-                    name, platform, budget, max_budget_allowed, status, 
-                    country, channel, objective, product, year, 
-                    created_at, updated_at
-                ) VALUES (
-                    ${id}, ${callerUserId}, ${organization_id}, ${client_id}, ${platform_account_id},
-                    ${name}, ${platform}, ${budget}, ${max_budget_allowed || budget}, ${status || 'draft'},
-                    ${country}, ${channel}, ${objective}, ${product}, ${year},
-                    ${timestamp}, ${timestamp}
-                ) ON CONFLICT (id) DO UPDATE SET
-                    name = EXCLUDED.name,
-                    platform = EXCLUDED.platform,
-                    budget = EXCLUDED.budget,
-                    max_budget_allowed = EXCLUDED.max_budget_allowed,
-                    status = EXCLUDED.status,
-                    country = EXCLUDED.country,
-                    channel = EXCLUDED.channel,
-                    objective = EXCLUDED.objective,
-                    product = EXCLUDED.product,
-                    year = EXCLUDED.year,
-                    updated_at = EXCLUDED.updated_at
-            `);
+                    if (!id || !organization_id || !client_id || !platform_account_id || !name || !platform || budget === undefined) {
+                        continue;
+                    }
 
-            return json(200, { success: true, id });
+                    await runQuery(sql => sql`
+                        INSERT INTO police_campaigns (
+                            id, user_id, organization_id, client_id, platform_account_id, 
+                            name, platform, budget, max_budget_allowed, status, 
+                            country, channel, objective, product, year, 
+                            created_at, updated_at
+                        ) VALUES (
+                            ${id}, ${callerUserId}, ${organization_id}, ${client_id}, ${platform_account_id},
+                            ${name}, ${platform}, ${Number(budget) || 0}, ${Number(max_budget_allowed) || Number(budget) || 0}, ${status || 'draft'},
+                            ${country}, ${channel}, ${objective}, ${product}, ${year},
+                            ${timestamp}, ${timestamp}
+                        ) ON CONFLICT (id) DO UPDATE SET
+                            name = EXCLUDED.name,
+                            platform = EXCLUDED.platform,
+                            budget = EXCLUDED.budget,
+                            max_budget_allowed = EXCLUDED.max_budget_allowed,
+                            status = EXCLUDED.status,
+                            country = EXCLUDED.country,
+                            channel = EXCLUDED.channel,
+                            objective = EXCLUDED.objective,
+                            product = EXCLUDED.product,
+                            year = EXCLUDED.year,
+                            updated_at = EXCLUDED.updated_at
+                    `);
+                }
+            };
+
+            if (Array.isArray(body)) {
+                await insertCampaigns(body);
+                return json(200, { success: true, count: body.length });
+            } else {
+                if (!body.id || !body.organization_id || !body.client_id || !body.platform_account_id || !body.name || !body.platform || body.budget === undefined) {
+                    return json(400, { error: "Missing required fields" });
+                }
+                await insertCampaigns([body]);
+                return json(200, { success: true, id: body.id });
+            }
         }
 
         return json(404, { error: "Endpoint not found" });

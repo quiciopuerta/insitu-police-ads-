@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Plus, CheckCircle2, AlertCircle, Loader2, Upload } from 'lucide-react';
 import { CampaignForm } from './CampaignForm';
+import { CampaignsCSVUploader } from './CampaignsCSVUploader';
 import { AuthUser } from '../../types';
 
 export const CampaignsView: React.FC<{ campaigns: any[]; loading: boolean; currentUser: AuthUser }> = ({ campaigns, loading, currentUser }) => {
   const [showForm, setShowForm] = useState(false);
+  const [showCSV, setShowCSV] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -13,14 +15,31 @@ export const CampaignsView: React.FC<{ campaigns: any[]; loading: boolean; curre
           <h2 className="text-xl font-bold text-white">Campañas</h2>
           <p className="text-white/50 text-sm mt-1">Gestiona y valida tus campañas de paid media</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-magenta hover:bg-magenta/80 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Nueva Campaña
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowCSV(true)}
+            className="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
+          >
+            <Upload className="w-4 h-4" />
+            Importar CSV
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-magenta hover:bg-magenta/80 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Nueva Campaña
+          </button>
+        </div>
       </div>
+
+      {showCSV && (
+        <CampaignsCSVUploader 
+          currentUser={currentUser}
+          onSuccess={() => setShowCSV(false)}
+          onCancel={() => setShowCSV(false)}
+        />
+      )}
 
       {showForm && (
         <div className="bg-[#111522] border border-white/10 p-6 rounded-xl relative">
@@ -52,18 +71,19 @@ export const CampaignsView: React.FC<{ campaigns: any[]; loading: boolean; curre
                   <th className="px-6 py-3 text-left font-semibold text-white/70">Plataforma</th>
                   <th className="px-6 py-3 text-left font-semibold text-white/70">Presupuesto</th>
                   <th className="px-6 py-3 text-left font-semibold text-white/70">Estado</th>
+                  <th className="px-6 py-3 text-left font-semibold text-white/70">Fecha / Hora</th>
                   <th className="px-6 py-3 text-left font-semibold text-white/70">Validación</th>
                   <th className="px-6 py-3 text-left font-semibold text-white/70">Acción</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {campaigns.map((campaign: any) => (
+                {campaigns?.map((campaign: any) => (
                   <tr key={campaign.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-medium text-white">{campaign.name}</p>
+                        <p className="font-medium text-white">{campaign.name || campaign.campaign_name}</p>
                         <p className="text-xs text-white/40 mt-1">
-                          {campaign.country} • {campaign.channel} • {campaign.objective}
+                          {campaign.country || 'N/A'} • {campaign.channel || 'N/A'} • {campaign.objective || 'N/A'}
                         </p>
                       </div>
                     </td>
@@ -88,6 +108,11 @@ export const CampaignsView: React.FC<{ campaigns: any[]; loading: boolean; curre
                       >
                         {campaign.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-white/80">
+                        {campaign.created_at ? new Date(campaign.created_at).toLocaleString() : 'N/A'}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-2">

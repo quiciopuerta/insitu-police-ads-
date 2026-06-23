@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Activity, Users, AlertCircle, Copy, Check, Search, Filter } from 'lucide-react';
+import { Shield, Activity, Users, AlertCircle, Copy, Check, Search, Filter, Download } from 'lucide-react';
 import { API_URL } from '../../utils/apiConfig';
 import { AuthUser } from '../../types';
 
@@ -53,12 +53,12 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
   };
 
   // Get unique lists for filtering
-  const clients = Array.from(new Set(activities.map(a => JSON.stringify({ id: a.client_id, name: a.client_name })).filter(Boolean)))
-    .map(c => JSON.parse(c))
+  const clients = Array.from(new Set(activities?.map(a => JSON.stringify({ id: a.client_id, name: a.client_name })).filter(Boolean)))
+    ?.map(c => JSON.parse(c as string))
     .filter(c => c.id);
 
-  const users = Array.from(new Set(activities.map(a => a.user_email).filter(Boolean)));
-  const platforms = Array.from(new Set(activities.map(a => a.platform).filter(Boolean)));
+  const users = Array.from(new Set(activities?.map(a => a.user_email).filter(Boolean)));
+  const platforms = Array.from(new Set(activities?.map(a => a.platform).filter(Boolean)));
 
   // Filter activities
   const filteredActivities = activities.filter(act => {
@@ -87,12 +87,32 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
           </h2>
           <p className="text-white/50 text-sm mt-1">Reportes y auditoría de nomenclaturas y control presupuestario.</p>
         </div>
-        <button
-          onClick={fetchActivities}
-          className="bg-white/10 hover:bg-white/15 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-        >
-          Sincronizar
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              const headers = ['Fecha/Hora', 'Cliente', 'Marca', 'Plataforma', 'Campaña', 'Presupuesto', 'IDs Plataforma', 'Usuario', 'Estado', 'UTM'];
+              const csvContent = [
+                headers.join(','),
+                ...filteredActivities.map(a => `"${a.created_at ? new Date(a.created_at).toLocaleString() : ''}","${a.client_name || ''}","${a.brand || ''}","${a.platform || ''}","${a.campaign_name || ''}","${a.budget || ''}","${a.campaign_id || ''} ${a.adset_id || ''} ${a.ad_id || ''}","${a.user_email || ''}","${a.status || ''}","${a.utm_url || ''}"`)
+              ].join('\n');
+              const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = `actividad_extension_${new Date().getTime()}.csv`;
+              link.click();
+            }}
+            className="bg-[#4f6bff]/20 text-[#4f6bff] hover:bg-[#4f6bff]/30 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2"
+          >
+            <Download className="w-3 h-3" />
+            Descargar CSV
+          </button>
+          <button
+            onClick={fetchActivities}
+            className="bg-white/10 hover:bg-white/15 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+          >
+            Sincronizar
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -128,7 +148,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
           className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-[#4f6bff]"
         >
           <option value="" className="bg-[#0b0e17]">Todos los Clientes</option>
-          {clients.map(c => (
+          {clients?.map(c => (
             <option key={c.id} value={c.id} className="bg-[#0b0e17]">{c.name}</option>
           ))}
         </select>
@@ -152,7 +172,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
           className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-[#4f6bff]"
         >
           <option value="" className="bg-[#0b0e17]">Todos los Usuarios</option>
-          {users.map(u => (
+          {users?.map(u => (
             <option key={u} value={u} className="bg-[#0b0e17]">{u}</option>
           ))}
         </select>
@@ -164,7 +184,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
           className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-[#4f6bff]"
         >
           <option value="" className="bg-[#0b0e17]">Todas las Plataformas</option>
-          {platforms.map(p => (
+          {platforms?.map(p => (
             <option key={p} value={p} className="bg-[#0b0e17]">{p}</option>
           ))}
         </select>
@@ -214,6 +234,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
             <table className="w-full text-xs text-left">
               <thead className="border-b border-white/10 bg-white/5 uppercase text-white/60 font-semibold">
                 <tr>
+                  <th className="px-6 py-3">Fecha / Hora</th>
                   <th className="px-6 py-3">Cliente / Marca</th>
                   <th className="px-6 py-3">Plataforma / Canal</th>
                   <th className="px-6 py-3">Campaña / UTM</th>
@@ -225,8 +246,13 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredActivities.map((act: any) => (
+                {filteredActivities?.map((act: any) => (
                   <tr key={act.id} className="hover:bg-white/5 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="text-white/80 whitespace-nowrap">
+                        {act.created_at ? new Date(act.created_at).toLocaleString() : 'N/A'}
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-white">{act.client_name || 'N/A'}</div>
                       <div className="text-white/40 text-[10px] mt-0.5">{act.brand || 'Sin marca'}</div>

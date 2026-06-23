@@ -102,6 +102,11 @@ function validateAndStyle(input) {
     
     inputValidationStates.set(input, validation.isValid);
     updateGlobalErrors();
+    
+    // Update global badge with dates and objectives
+    if (window.InsituValidator) {
+      window.InsituValidator.updateCampaignDaysBadge();
+    }
   } catch (e) {
     console.error('[insitu.company] Validation error:', e.message);
   }

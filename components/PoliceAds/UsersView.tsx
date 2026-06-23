@@ -234,7 +234,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ currentUser }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {users.map((u) => (
+          {users?.map((u) => (
             <div key={u.id} className="bg-[#0b0e17] rounded-2xl border border-white/5 p-5 relative overflow-hidden group shadow-lg flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
