@@ -189,9 +189,16 @@ const AuthGate: React.FC<AuthGateProps> = ({ onLogin, onCancel, language = "es" 
   // Google Sign-In & Turnstile Initialization
   const googleInitialized = React.useRef(false);
 
-  // Load Turnstile script once
+  // Load Turnstile script once and render invisible widget
   useEffect(() => {
-    turnstileService.loadScript();
+    turnstileService.loadScript().then((success) => {
+      if (success && TURNSTILE_SITE_KEY) {
+        turnstileService.render("turnstile-widget", { size: "invisible" });
+      }
+    });
+    return () => {
+      turnstileService.remove("turnstile-widget");
+    };
   }, []);
 
   // Initialize Google Sign-In ONCE (idempotent guard via ref)
@@ -394,6 +401,7 @@ const AuthGate: React.FC<AuthGateProps> = ({ onLogin, onCancel, language = "es" 
 
   return (
     <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-[#020617] overflow-y-auto font-sans">
+      <div id="turnstile-widget" className="hidden"></div>
       {/* Toast notification — outside the card */}
       {toast && <Toast toast={toast} onDismiss={dismissToast} />}
 

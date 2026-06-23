@@ -51,7 +51,7 @@ export const turnstileService = {
     containerId: string,
     options?: {
       theme?: "light" | "dark";
-      size?: "normal" | "compact";
+      size?: "normal" | "compact" | "invisible";
     }
   ): Promise<string | null> => {
     return new Promise((resolve) => {
