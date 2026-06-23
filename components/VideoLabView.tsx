@@ -297,8 +297,7 @@ const VideoLabView: React.FC<VideoLabViewProps> = ({ currentUser, language }) =>
 
           {/* Platform & Format */}
           <div className="space-y-4">
-            <label className="text-[11px] font-black uppercase tracking-[0.3em] text-white/40 block">{language === 'es' ? 'Plataforma & Formato' : 'Platform & Format'}</label>
-            <PlatformFormatSelector platform={videoLabState.platform} format={videoLabState.format} onPlatformChange={p => setVideoLabState(prev => ({ ...prev, platform: p }))} onFormatChange={f => setVideoLabState(prev => ({ ...prev, format: f as '9:16' | '16:9' }))} />
+            <PlatformFormatSelector mode="video" value={videoLabState.format} onChange={f => setVideoLabState(prev => ({ ...prev, format: f as '9:16' | '16:9' }))} />
           </div>
 
           {/* Engine toggle */}
@@ -325,7 +324,7 @@ const VideoLabView: React.FC<VideoLabViewProps> = ({ currentUser, language }) =>
                     <div>
                       <label className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1 block">Voz</label>
                       <select value={videoLabState.ttsVoice} onChange={e => setVideoLabState(prev => ({ ...prev, ttsVoice: e.target.value }))} className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff477b]/40">
-                        {VOICE_LIST.map(v => <option key={v} value={v} className="bg-[#0a0f1e]">{v}</option>)}
+                        {VOICE_LIST.map(v => <option key={v.id} value={v.id} className="bg-[#0a0f1e]">{v.name}</option>)}
                       </select>
                     </div>
                     <div>
@@ -435,7 +434,26 @@ const VideoLabView: React.FC<VideoLabViewProps> = ({ currentUser, language }) =>
           )}
 
           {multiStageState.isActive && multiStageState.segments.length > 0 && (
-            <MultiStageVideoComposer state={multiStageState} language={language} isSuperAdmin={isSuperAdmin} onRetrySegment={handleRetrySegment} onCompose={handleCompose} onAddSegment={() => { const ns: VideoSegment = { id: `seg_${Date.now()}`, index: multiStageState.segments.length, prompt: videoLabState.prompt || 'Nueva escena', status: 'pending', operationName: null, videoUrl: null, thumbnailDataUrl: null, errorMessage: null, durationSeconds: 6, type: 'video' }; setMultiStageState(prev => ({ ...prev, segments: [...prev.segments, ns], segmentOrder: [...prev.segmentOrder, ns.id] })); }} onAddTextLayer={handleAddTextLayer} onUpdateTextLayer={handleUpdateTextLayer} onRemoveTextLayer={handleRemoveTextLayer} onAddImageLayer={handleAddImageLayer} onUpdateImageLayer={handleUpdateImageLayer} onRemoveImageLayer={handleRemoveImageLayer} onAddAudioLayer={handleAddAudioLayer} onUpdateAudioLayer={handleUpdateAudioLayer} onRemoveAudioLayer={handleRemoveAudioLayer} onUpdateSegmentEditProps={handleUpdateSegmentEditProps} onReorderSegments={handleReorderSegments} globalPrompt={videoLabState.prompt} globalFormat={videoLabState.format} />
+            <MultiStageVideoComposer 
+              state={multiStageState} 
+              language={language} 
+              onConfirmStoryboard={() => setMultiStageState(prev => ({ ...prev, storyboardConfirmed: true, isEditing: true }))}
+              onRetrySegment={handleRetrySegment} 
+              onTransitionChange={(t) => setMultiStageState(prev => ({ ...prev, transition: t }))}
+              onTransitionDurationChange={(d) => setMultiStageState(prev => ({ ...prev, transitionDurationSeconds: d }))}
+              onCompose={handleCompose} 
+              onAddTextLayer={handleAddTextLayer} 
+              onUpdateTextLayer={handleUpdateTextLayer} 
+              onRemoveTextLayer={handleRemoveTextLayer} 
+              onAddImageLayer={handleAddImageLayer} 
+              onUpdateImageLayer={handleUpdateImageLayer} 
+              onRemoveImageLayer={handleRemoveImageLayer} 
+              onAddAudioLayer={handleAddAudioLayer} 
+              onUpdateAudioLayer={handleUpdateAudioLayer} 
+              onRemoveAudioLayer={handleRemoveAudioLayer} 
+              onUpdateSegmentEditProps={handleUpdateSegmentEditProps} 
+              onReorderSegments={handleReorderSegments} 
+            />
           )}
 
           {videoLabState.videoUrl && !multiStageState.isActive && (

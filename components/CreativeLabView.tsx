@@ -813,6 +813,7 @@ export const CreativeLabView: React.FC<CreativeLabViewProps> = ({
       if (videoLabState.autoSubtitles && (audioUrl || url)) {
         try {
           setVideoLabState(prev => ({ ...prev, isGeneratingCaptions: true }));
+          const { generateCaptions } = await import('../utils/whisperCaptions');
           captions = await generateCaptions(audioUrl, {
             videoUrl: audioUrl ? undefined : url,
           });
@@ -1487,6 +1488,7 @@ export const CreativeLabView: React.FC<CreativeLabViewProps> = ({
       if (animationState.autoSubtitles && (audioUrl || url)) {
         try {
           setAnimationState(prev => ({ ...prev, isGeneratingCaptions: true }));
+          const { generateCaptions } = await import('../utils/whisperCaptions');
           captions = await generateCaptions(audioUrl, {
             videoUrl: audioUrl ? undefined : url,
           });

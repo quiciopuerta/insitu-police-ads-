@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle2, Download, AlertCircle, Loader2, Sparkles, Globe } from 'lucide-react';
+
+declare const chrome: any;
 import { AuthUser } from '../../types';
 
 interface ExtensionStatus {
@@ -53,13 +55,18 @@ export const ExtensionWidget: React.FC<{ currentUser: AuthUser; language?: strin
 
     const testName = 'EC_FB_CONV_Test_2026';
     // The extension content script should intercept this
-    if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
         chrome.runtime.sendMessage(
           {
             type: 'VALIDATE_CAMPAIGN',
             campaignName: testName,
           },
           (response) => {
+            if (chrome.runtime.lastError) {
+              console.warn('[INsitu PoliceAds] Extension not reachable:', chrome.runtime.lastError.message);
+              alert('La extensión no está respondiendo. Verifica que esté habilitada.');
+              return;
+            }
             if (response?.isValid) {
               alert(`✅ La extensión funciona correctamente. Formato validado: ${testName}`);
             } else {

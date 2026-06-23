@@ -61,8 +61,7 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ currentUser, onSucce
         "tips": ["Tip sobre mejores prácticas de nomenclatura", "Otro tip"]
       }`;
 
-      const response = await provider.models.generateContent({
-        model: GLOBAL_MODEL_ID.PRIMARY,
+      const response = await provider.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
           temperature: 0.7,

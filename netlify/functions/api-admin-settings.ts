@@ -42,9 +42,19 @@ const handler: Handler = async (
     };
 
     try {
+        // Ensure table exists
+        await runQuery(async (sql) => {
+            await sql`
+                CREATE TABLE IF NOT EXISTS settings (
+                    id INTEGER PRIMARY KEY,
+                    data JSONB
+                )
+            `;
+        }).catch(() => null);
+
         // ── GET: public — app settings needed by all users ──────────
         if (event.httpMethod === "GET") {
-            const rows = await runQuery((sql) => sql`SELECT data FROM settings WHERE id = 1`);
+            const rows = await runQuery((sql) => sql`SELECT data FROM settings WHERE id = 1`).catch(() => null);
             if (!rows?.length) {
                 return { statusCode: 200, headers: CORS, body: JSON.stringify({}) };
             }

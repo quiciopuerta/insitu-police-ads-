@@ -34,7 +34,7 @@ const handler: Handler = async (
     let isAuthorized = isGet || (ADMIN_SECRET !== "" && authHeader === `Bearer ${ADMIN_SECRET}`);
 
     if (!isAuthorized && xUserId) {
-        const roleRows = await runQuery(async (sql) => await sql`SELECT role, username FROM users WHERE id = ${xUserId} LIMIT 1`);
+        const roleRows = await runQuery(async (sql) => await sql`SELECT role, username FROM users WHERE id = ${xUserId} LIMIT 1`).catch(() => null);
         if (roleRows && roleRows.length > 0) {
             // Solo SuperAdmins o desarrolladores con ADMIN_SECRET pueden ver eliminados o realizar borrados
             isAuthorized = roleRows[0].role === "admin" || roleRows[0].role === "superAdmin";
@@ -47,7 +47,7 @@ const handler: Handler = async (
                              (await runQuery(async (sql) => {
                                  const r = await sql`SELECT role FROM users WHERE id = ${xUserId} LIMIT 1`;
                                  return r?.[0]?.role === "superAdmin";
-                             }));
+                             }).catch(() => false));
     if (!isAuthorized) {
         console.warn(`[ADMIN] 401 Unauthorized for path ${event.path}. UserUID: ${xUserId || 'Missing'}`);
         return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized" }) };

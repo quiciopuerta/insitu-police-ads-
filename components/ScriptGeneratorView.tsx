@@ -157,8 +157,8 @@ const ScriptGeneratorView: React.FC<ScriptGeneratorViewProps> = ({ language }) =
     setSelectedAccount({
       name: manualAccount.name,
       id: manualAccount.id,
-      customerId: manualAccount.id,
-      currencyCode: 'USD',
+      resourceName: `customers/${manualAccount.id}`,
+      status: 'active',
     });
     setMode('manual');
   };

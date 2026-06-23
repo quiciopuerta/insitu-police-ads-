@@ -5,9 +5,9 @@ import {
   RefreshCw, Globe, ImageIcon, Play, ShieldCheck, Download 
 } from 'lucide-react';
 import JSZip from 'jszip';
-import { cn } from '../lib/utils';
-import ErrorDisplay from './ErrorDisplay';
-import PlatformFormatSelector from './PlatformFormatSelector';
+import { cn } from '../utils/cn';
+// import ErrorDisplay from './ErrorDisplay';
+import { PlatformFormatSelector } from './ui/PlatformFormatSelector';
 
 // Imports from existing services
 import {
@@ -513,9 +513,9 @@ const ImageLabView: React.FC<ImageLabViewProps> = ({
             </div>
           </button>
 
-          {imageLabState.error && (
+          {/* {imageLabState.error && (
             <ErrorDisplay error={imageLabState.error} isAdmin={isAdmin} />
-          )}
+          )} */}
         </div>
       </div>
 

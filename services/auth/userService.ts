@@ -134,6 +134,8 @@ export const userService = {
   verifySession: async (): Promise<AuthUser | null> => {
     try {
       // First, try to fetch the session from the backend using the HTTP-Only cookie
+      // Removed fetch to /auth/me to prevent console 404 errors as the backend doesn't implement it yet.
+      /*
       const response = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -147,6 +149,7 @@ export const userService = {
           return data.user;
         }
       }
+      */
     } catch (e) {
       logger.warn("[AUTH] Could not verify session with backend:", e);
     }
@@ -284,9 +287,11 @@ export const userService = {
           }
         } else {
           const errorData = await response.json().catch(() => ({}));
-          // Only return server error if backend is truly rejecting (401/403), not network issues
+          // Surface standard auth errors and server-provided error messages (like rate limits or DB circuit breakers)
           if (response.status === 401) return { user: null, error: 'Credenciales inválidas.' };
           if (response.status === 403) return { user: null, error: errorData.error || 'Acceso denegado.' };
+          if (response.status === 429) return { user: null, error: errorData.error || 'Demasiados intentos. Intenta más tarde.' };
+          if (response.status >= 500 && errorData.error) return { user: null, error: errorData.error };
         }
       }
       // If backend returned HTML (e.g. SPA fallback), fall through to local auth
