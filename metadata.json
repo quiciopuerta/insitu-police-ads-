@@ -1,0 +1,9 @@
+{
+  "name": "Insitu Ads",
+  "description": "Herramienta profesional de optimización de Google Ads por Insitu. Genera keywords, copies y estrategias para el mercado de Ecuador y global.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera",
+    "microphone"
+  ]
+}

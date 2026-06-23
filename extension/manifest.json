@@ -1,0 +1,102 @@
+{
+  "manifest_version": 3,
+  "name": "insitu.company - Command Center",
+  "version": "1.0.14",
+  "description": "Real-time validation for ad campaign nomenclature and budgets",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "tabs",
+    "storage",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://insitu.company/*",
+    "https://main--insitu-company-ads.netlify.app/*",
+    "https://business.facebook.com/*",
+    "https://adsmanager.facebook.com/*",
+    "https://ads.google.com/*",
+    "https://www.tiktok.com/*",
+    "https://ads.pinterest.com/*",
+    "https://business.linkedin.com/*",
+    "https://ads.snapchat.com/*",
+    "https://ads.twitter.com/*",
+    "https://advertising.amazon.com/*",
+    "https://ads.microsoft.com/*",
+    "https://advertising.yahoo.com/*",
+    "https://ads.criteo.com/*",
+    "https://www.outbrain.com/*",
+    "https://www.taboola.com/*"
+  ],
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "action": {
+    "default_title": "insitu.company Validator"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://business.facebook.com/*",
+        "https://adsmanager.facebook.com/*"
+      ],
+      "js": ["validator.js", "meta-validator.js", "meta_injector.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://ads.google.com/*"],
+      "js": ["validator.js", "google-validator.js", "google_injector.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://*.tiktok.com/*",
+        "https://ads.pinterest.com/*",
+        "https://*.linkedin.com/*",
+        "https://ads.twitter.com/*",
+        "https://ads.x.com/*",
+        "https://advertising.amazon.com/*",
+        "https://ads.snapchat.com/*",
+        "https://ads.microsoft.com/*",
+        "https://advertising.yahoo.com/*",
+        "https://ads.criteo.com/*",
+        "https://*.outbrain.com/*",
+        "https://*.taboola.com/*"
+      ],
+      "js": ["validator.js", "generic-validator.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://insitu.company/*",
+        "https://main--insitu-company-ads.netlify.app/*",
+        "http://localhost:5173/*",
+        "http://localhost:8888/*"
+      ],
+      "js": ["content-bridge.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "externally_connectable": {
+    "matches": [
+      "https://insitu.company/*",
+      "https://main--insitu-company-ads.netlify.app/*",
+      "http://localhost:5173/*",
+      "http://localhost:8888/*"
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["validator-config.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>INsitu Intelligence - Competitor Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#f67ca3",
+                    "secondary": "#c08cf7",
+                    "tertiary-fixed": "#ff8eb0",
+                    "on-tertiary-container": "#59002a",
+                    "primary-container": "#ae8dff",
+                    "primary-fixed-dim": "#a27cff",
+                    "surface-dim": "#170529",
+                    "on-secondary": "#390068",
+                    "primary-dim": "#8553f3",
+                    "error-container": "#a70138",
+                    "surface-container-highest": "#33184d",
+                    "on-secondary-fixed-variant": "#69379c",
+                    "surface-bright": "#3a1e57",
+                    "primary-fixed": "#ae8dff",
+                    "background": "#170529",
+                    "tertiary-dim": "#f0779d",
+                    "on-surface-variant": "#baa2cf",
+                    "secondary-dim": "#bb87f1",
+                    "surface-container": "#240e3b",
+                    "on-background": "#f2dfff",
+                    "on-primary-fixed": "#000000",
+                    "outline-variant": "#534067",
+                    "on-surface": "#f2dfff",
+                    "tertiary-container": "#fd81a8",
+                    "secondary-container": "#5e2c91",
+                    "on-secondary-fixed": "#4b147d",
+                    "surface-container-low": "#1d0832",
+                    "on-tertiary-fixed": "#380018",
+                    "on-tertiary": "#6a0934",
+                    "on-tertiary-fixed-variant": "#701039",
+                    "surface-variant": "#33184d",
+                    "error-dim": "#d73357",
+                    "primary": "#ba9eff",
+                    "on-primary": "#39008c",
+                    "on-primary-container": "#2b006e",
+                    "inverse-on-surface": "#614d75",
+                    "surface-container-lowest": "#000000",
+                    "surface-container-high": "#2b1344",
+                    "error": "#ff6e84",
+                    "on-error-container": "#ffb2b9",
+                    "inverse-surface": "#fff7ff",
+                    "inverse-primary": "#6e39db",
+                    "on-secondary-container": "#e3c4ff",
+                    "on-error": "#490013",
+                    "surface": "#170529",
+                    "secondary-fixed": "#e4c6ff",
+                    "on-primary-fixed-variant": "#370086",
+                    "secondary-fixed-dim": "#dab4ff",
+                    "outline": "#826d97",
+                    "tertiary": "#ff97b5",
+                    "surface-tint": "#ba9eff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk", "sans-serif"],
+                    "display": ["Space Grotesk", "sans-serif"],
+                    "body": ["Inter", "sans-serif"],
+                    "label": ["Public Sans", "sans-serif"]
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body overflow-x-hidden antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Background Atmospheric Glows -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary-dim/10 blur-[120px]"></div>
+<div class="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-secondary-container/10 blur-[150px]"></div>
+</div>
+<!-- SideNavBar -->
+<nav class="hidden md:flex fixed left-0 top-0 h-full flex-col p-4 z-40 w-64 rounded-r-xl bg-surface-container/60 backdrop-blur-xl border-r border-outline-variant/30 shadow-2xl">
+<div class="mb-8 px-2 flex flex-col items-start gap-2">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0 mb-2">
+<img alt="User Profile" class="w-full h-full object-cover rounded-full" data-alt="A sleek, minimalist avatar or icon representing a user profile, rendered in glowing neon purple and magenta accents against a deep charcoal background, exuding a high-tech modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqwn6Sip-bhtcObxbCoB5wiqAFg3Xtps7jQ6qPp1jlobYOlHwYkoIGwL01ZkZ0zor5u8B7wI_lW7nOzmKRbi_AZfe-ilkR8Iy-3oAJHw9aZqdtqVPPYii204mAvcE-XQPabBPfElcH7bJg8U-jYi17VABp_Z-fwBRACq3FphBtDPt1A7q5PUsTxhVufRR7DGOjDymYAfE5PTb0OVmDyNRM00rmNjhf-1LF42pldYlmdcvYbG_kk9Gl0lKQ7fxffKeG8OKg4A96HwA"/>
+</div>
+<h1 class="text-xl font-headline font-bold text-primary-fixed leading-tight">INsitu Intelligence</h1>
+<p class="text-xs font-label text-on-surface-variant uppercase tracking-wider">Advertising Suite</p>
+</div>
+<div class="flex-1 flex flex-col gap-2 overflow-y-auto w-full">
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface px-4 py-3 hover:bg-surface-variant/50 transition-all duration-300 font-headline font-medium rounded-lg active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>Home</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface px-4 py-3 hover:bg-surface-variant/50 transition-all duration-300 font-headline font-medium rounded-lg active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">search_check</span>
+<span>Search Audit</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface px-4 py-3 hover:bg-surface-variant/50 transition-all duration-300 font-headline font-medium rounded-lg active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">image_search</span>
+<span>Image Audit</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface px-4 py-3 hover:bg-surface-variant/50 transition-all duration-300 font-headline font-medium rounded-lg active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">video_search</span>
+<span>Video Audit</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container rounded-lg px-4 py-3 shadow-sm font-headline font-medium hover:bg-surface-variant/50 transition-all duration-300 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">monitoring</span>
+<span>Competitor Tracker</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface px-4 py-3 hover:bg-surface-variant/50 transition-all duration-300 font-headline font-medium rounded-lg active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">settings_input_component</span>
+<span>Ads Optimizer</span>
+</a>
+</div>
+<div class="mt-auto pt-4 w-full">
+<button class="w-full bg-primary hover:bg-primary-dim text-on-primary font-headline font-bold py-3 px-4 rounded-lg shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5">
+                Upgrade to Pro
+            </button>
+</div>
+</nav>
+<!-- TopNavBar -->
+<header class="hidden md:flex justify-between items-center w-full px-8 py-4 ml-64 max-w-[calc(100%-16rem)] fixed full-width top-0 bg-background/80 backdrop-blur-md z-30 transition-all">
+<div class="flex items-center gap-4">
+<div class="text-lg font-headline font-black text-primary">Ad Intel</div>
+<div class="relative focus-within:ring-2 focus-within:ring-primary rounded-full transition-all">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="bg-surface-container-low text-on-surface placeholder:text-on-surface-variant/50 rounded-full pl-10 pr-4 py-2 border border-outline-variant/30 focus:outline-none text-sm w-64 transition-all focus:w-80" placeholder="Search competitors..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary-fixed transition-colors p-2 rounded-full hover:bg-surface-variant/50">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary-fixed transition-colors p-2 rounded-full hover:bg-surface-variant/50">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Mobile Nav Header (Simplified) -->
+<header class="md:hidden flex justify-between items-center w-full px-4 py-4 fixed top-0 bg-background/80 backdrop-blur-md z-30 border-b border-outline-variant/30">
+<div class="text-lg font-headline font-black text-primary">INsitu</div>
+<button class="text-on-surface-variant p-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-20 md:pt-24 pb-24 md:pb-8 px-4 md:px-8 ml-0 md:ml-64 min-h-screen relative z-10">
+<!-- Page Header -->
+<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="text-3xl md:text-4xl font-headline font-bold text-on-surface tracking-tight mb-2">Competitor Tracker</h2>
+<p class="text-on-surface-variant text-sm md:text-base max-w-2xl">Real-time strategic intelligence. Monitor market share, ad creatives, and keyword gaps across your primary rivals.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                    Export Report
+                </button>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-dim text-on-primary px-4 py-2 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
+<span class="material-symbols-outlined text-sm">add</span>
+                    Add Competitor
+                </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Market Share Trend (Spans 8 cols) -->
+<div class="col-span-1 md:col-span-8 bg-surface-container-low/80 backdrop-blur-md border border-outline-variant/30 rounded-xl p-6 shadow-xl relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-headline font-semibold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">timeline</span>
+                            Market Share SOV (30 Days)
+                        </h3>
+<p class="text-xs text-on-surface-variant mt-1">Share of Voice across monitored digital channels.</p>
+</div>
+<div class="flex gap-2">
+<span class="flex items-center gap-1 text-xs bg-surface-variant px-2 py-1 rounded-md text-on-surface"><div class="w-2 h-2 rounded-full bg-primary"></div> You</span>
+<span class="flex items-center gap-1 text-xs bg-surface-variant px-2 py-1 rounded-md text-on-surface"><div class="w-2 h-2 rounded-full bg-tertiary"></div> Rival A</span>
+<span class="flex items-center gap-1 text-xs bg-surface-variant px-2 py-1 rounded-md text-on-surface"><div class="w-2 h-2 rounded-full bg-secondary"></div> Rival B</span>
+</div>
+</div>
+<!-- Abstract Chart Representation -->
+<div class="h-64 w-full relative flex items-end gap-1">
+<!-- Minimalist structural lines simulating a chart -->
+<div class="absolute inset-0 border-b border-l border-outline-variant/20 flex flex-col justify-between pb-8">
+<div class="w-full border-t border-outline-variant/10 h-0"></div>
+<div class="w-full border-t border-outline-variant/10 h-0"></div>
+<div class="w-full border-t border-outline-variant/10 h-0"></div>
+</div>
+<!-- Faux data lines using SVG -->
+<svg class="absolute inset-0 w-full h-full pb-8" preserveaspectratio="none" viewbox="0 0 100 100">
+<path class="text-primary drop-shadow-[0_0_8px_rgba(186,158,255,0.5)]" d="M0,80 Q20,60 40,70 T80,40 T100,30" fill="none" stroke="currentColor" stroke-width="2"></path>
+<path class="text-tertiary drop-shadow-[0_0_8px_rgba(255,151,181,0.5)]" d="M0,90 Q30,85 50,60 T90,50 T100,45" fill="none" stroke="currentColor" stroke-dasharray="4" stroke-width="2"></path>
+<path class="text-secondary drop-shadow-[0_0_8px_rgba(192,140,247,0.5)]" d="M0,70 Q25,90 45,80 T75,90 T100,85" fill="none" opacity="0.6" stroke="currentColor" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Price Monitoring Widget (Spans 4 cols) -->
+<div class="col-span-1 md:col-span-4 bg-surface-container-low/80 backdrop-blur-md border border-outline-variant/30 rounded-xl p-6 shadow-xl flex flex-col">
+<div class="flex justify-between items-start mb-6">
+<h3 class="text-lg font-headline font-semibold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">sell</span>
+                        Price Alerts
+                    </h3>
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">more_horiz</span></button>
+</div>
+<div class="flex-1 flex flex-col gap-4">
+<!-- Alert Item -->
+<div class="bg-surface-variant/40 rounded-lg p-4 border border-outline-variant/20 hover:border-secondary/50 transition-colors">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm font-medium text-on-surface">Rival A - Core Tier</span>
+<span class="text-xs bg-error-container/20 text-error px-2 py-0.5 rounded text-xs flex items-center gap-1"><span class="material-symbols-outlined text-[10px]">arrow_downward</span> -15%</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-headline font-bold text-on-surface">$49.99</span>
+<span class="text-sm text-on-surface-variant line-through mb-1">$59.99</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-2 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">schedule</span> Detected 2h ago</p>
+</div>
+<!-- Alert Item -->
+<div class="bg-surface-variant/40 rounded-lg p-4 border border-outline-variant/20 hover:border-secondary/50 transition-colors">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm font-medium text-on-surface">Rival B - Pro Tier</span>
+<span class="text-xs bg-primary-container/20 text-primary px-2 py-0.5 rounded text-xs flex items-center gap-1"><span class="material-symbols-outlined text-[10px]">arrow_upward</span> +5%</span>
+</div>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-headline font-bold text-on-surface">$104.99</span>
+<span class="text-sm text-on-surface-variant line-through mb-1">$99.99</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-2 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">schedule</span> Detected 1d ago</p>
+</div>
+</div>
+</div>
+<!-- Ad Library Preview (Spans 12 cols) -->
+<div class="col-span-1 md:col-span-12 bg-surface-container-low/80 backdrop-blur-md border border-outline-variant/30 rounded-xl p-6 shadow-xl">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h3 class="text-lg font-headline font-semibold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">ad_units</span>
+                            Latest Competitor Creatives
+                        </h3>
+<p class="text-xs text-on-surface-variant mt-1">Recently detected ad variations across social networks.</p>
+</div>
+<button class="text-sm text-primary hover:text-primary-fixed transition-colors font-medium flex items-center gap-1">
+                        View All <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<!-- Creative Card -->
+<div class="group relative rounded-lg overflow-hidden border border-outline-variant/30 bg-surface-variant aspect-[4/5]">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="A dark, sleek advertisement creative featuring a high-tech glowing smartphone displaying abstract neon purple data visualization graphics. The lighting is dramatic, highlighting the sleek edges of the device against a deep charcoal background, exuding a premium, modern tech aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAzbxgRbpB_ilTJdV45QH2Qi_vlsgoHG3ir6q_foBToPXuFTdCnp1z60K6ME08mPzFLfrx-IDcXA4mxUIJ8CYsg4fPycJepczM8VL4piXlHswBKLoYb7fy-TMtV1NjYxR9VjQJ0-sL7Sc9EvXmleBSO7Ae4tEKNeSAs5326OqxoQDkBvyDZgDgwf3g8Oo0aumfZz7l5TQWn1bRMO7eyG6wI3t766rBpXRSDTylUmlLftRY9sCO2n4TUUP_UKuHqssblQJ2WQ9lvKxY')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-surface-container-lowest/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-3">
+<div class="flex justify-between items-center mb-1">
+<span class="text-xs font-bold text-on-surface bg-surface-container/80 px-2 py-0.5 rounded backdrop-blur-sm">Rival A</span>
+<span class="material-symbols-outlined text-on-surface text-sm">play_circle</span>
+</div>
+<p class="text-xs text-on-surface-variant truncate">"Unlock new potential..."</p>
+</div>
+</div>
+<!-- Creative Card -->
+<div class="group relative rounded-lg overflow-hidden border border-outline-variant/30 bg-surface-variant aspect-[4/5]">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="A vibrant digital ad creative showing a stylized 3D rendering of a cloud server connected by glowing neon pink data streams. The scene is set in a dark, atmospheric void, emphasizing the speed and connectivity of cloud technology in a modern, abstract visual style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD2UYfGleuCA8ZWsOM_mNbS5O2toUcAFkvNqkYHDFPjmZrEobkIVzUd92RlvMU90zqxXwmUBRGoCbHV7oNBl9bBVLdA4uUbxn4QmRHPUIDISPSLzZFQVBzkLtDtb_fZ9zS-JtwVxeRDkdkMzsjDj-Fdy2untmmpFrpJ5AVDKK8J-db25sC7Ma_RX5iN40IhEP4LkaJWCExmU4i2GkAf4ArzkiLqL6NkQiWwRCOmG-6iL9WTADOaTIoS9PqvAWpYUPDZFvO2W5Q1nM0')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-surface-container-lowest/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-3">
+<div class="flex justify-between items-center mb-1">
+<span class="text-xs font-bold text-on-surface bg-surface-container/80 px-2 py-0.5 rounded backdrop-blur-sm">Rival B</span>
+<span class="material-symbols-outlined text-on-surface text-sm">image</span>
+</div>
+<p class="text-xs text-on-surface-variant truncate">"Speed meets security."</p>
+</div>
+</div>
+<!-- Creative Card -->
+<div class="group relative rounded-lg overflow-hidden border border-outline-variant/30 bg-surface-variant aspect-[4/5]">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="A minimalist, high-contrast ad design featuring bold, heavy typography in crisp white and neon purple against a stark black background. The text reads 'Scale Faster' surrounded by subtle geometric grid patterns, representing a sophisticated, data-driven brand identity." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuADIkAUXUw96WjrNKY2V9CbuaI0eFfsBr0DBq_Mq7UXe6Zfjw_SYFO4Ier7syyuLcYBE223l__2skbLbPedABh8SKYZ1vMJjF7OuwMsOMnZLXDaYqb-G-V38mqrb392JK3nJUPxUpytejmAPxp2dhI30nmMdEf6Da_nhMADfJj-9bscCZNUjzvGeR-jYN6WLgxkTPyZoSeIw7uxbAunvwnB7BthQBtCpTodTZwCZAuSMH39JbKooKloAxOPOkdwBwtcagJw-nBJ1cs')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-surface-container-lowest/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-3">
+<div class="flex justify-between items-center mb-1">
+<span class="text-xs font-bold text-on-surface bg-surface-container/80 px-2 py-0.5 rounded backdrop-blur-sm">Rival A</span>
+<span class="material-symbols-outlined text-on-surface text-sm">image</span>
+</div>
+<p class="text-xs text-on-surface-variant truncate">"Scale Faster. Smart..."</p>
+</div>
+</div>
+<!-- Creative Card (Empty State/Loading) -->
+<div class="group relative rounded-lg border border-outline-variant/30 bg-surface-variant/20 aspect-[4/5] flex flex-col items-center justify-center p-4 text-center">
+<span class="material-symbols-outlined text-outline text-3xl mb-2 animate-pulse">hourglass_empty</span>
+<p class="text-xs text-on-surface-variant">Scanning for new creatives...</p>
+</div>
+</div>
+</div>
+<!-- Keyword Gap Table (Spans 12 cols) -->
+<div class="col-span-1 md:col-span-12 bg-surface-container-low/80 backdrop-blur-md border border-outline-variant/30 rounded-xl shadow-xl overflow-hidden">
+<div class="p-6 border-b border-outline-variant/30 flex justify-between items-center">
+<h3 class="text-lg font-headline font-semibold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">key</span>
+                        Keyword Gap Analysis
+                    </h3>
+<div class="flex gap-2">
+<button class="bg-surface-variant text-on-surface text-xs px-3 py-1.5 rounded-md hover:bg-surface-variant/80 transition-colors">Missing</button>
+<button class="bg-surface-container-highest text-on-surface-variant text-xs px-3 py-1.5 rounded-md hover:text-on-surface transition-colors">Weak</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-variant/30 text-on-surface-variant text-xs uppercase tracking-wider font-label">
+<th class="p-4 font-medium">Keyword</th>
+<th class="p-4 font-medium">Search Volume</th>
+<th class="p-4 font-medium">Your Rank</th>
+<th class="p-4 font-medium">Rival A Rank</th>
+<th class="p-4 font-medium">Rival B Rank</th>
+<th class="p-4 font-medium">Opportunity</th>
+</tr>
+</thead>
+<tbody class="text-sm text-on-surface divide-y divide-outline-variant/20">
+<tr class="hover:bg-surface-variant/20 transition-colors">
+<td class="p-4 font-medium">ai ad targeting</td>
+<td class="p-4 text-on-surface-variant">12,500</td>
+<td class="p-4 text-error">-</td>
+<td class="p-4 text-primary">3</td>
+<td class="p-4 text-on-surface-variant">12</td>
+<td class="p-4">
+<div class="w-full bg-surface-variant rounded-full h-1.5"><div class="bg-tertiary h-1.5 rounded-full" style="width: 85%"></div></div>
+</td>
+</tr>
+<tr class="hover:bg-surface-variant/20 transition-colors">
+<td class="p-4 font-medium">predictive analytics saas</td>
+<td class="p-4 text-on-surface-variant">8,200</td>
+<td class="p-4 text-on-surface-variant">24</td>
+<td class="p-4 text-primary">1</td>
+<td class="p-4 text-primary">4</td>
+<td class="p-4">
+<div class="w-full bg-surface-variant rounded-full h-1.5"><div class="bg-tertiary h-1.5 rounded-full" style="width: 92%"></div></div>
+</td>
+</tr>
+<tr class="hover:bg-surface-variant/20 transition-colors">
+<td class="p-4 font-medium">automated bidding software</td>
+<td class="p-4 text-on-surface-variant">18,100</td>
+<td class="p-4 text-on-surface-variant">15</td>
+<td class="p-4 text-on-surface-variant">11</td>
+<td class="p-4 text-primary">2</td>
+<td class="p-4">
+<div class="w-full bg-surface-variant rounded-full h-1.5"><div class="bg-secondary h-1.5 rounded-full" style="width: 65%"></div></div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</body></html>

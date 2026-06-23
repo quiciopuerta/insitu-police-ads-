@@ -1,0 +1,31 @@
+# INsitu AI - robots.txt
+# Optimized for Googlebot and GenAI bots (AEO/GEO)
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /.netlify/
+Disallow: /login
+Disallow: /signup
+Disallow: /settings
+
+# AI Crawlers - GEO & AEO Strategy
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+Allow: /llms.txt
+
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+
+Sitemap: https://insitu.company/sitemap.xml

@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const { ScanEye, Clapperboard } = require\\(''lucide-react''\\); console.log\\(''ScanEye:'', !!ScanEye, ''Clapperboard:'', !!Clapperboard\\);\")",
+      "Bash(grep -r \"admin-notify\\\\|adminNotify\\\\|pollerId\" /Users/sanchezfj/INsitu-AI-2 --include=*.ts --include=*.tsx --include=*.js)",
+      "Bash(grep -rn \"admin-notify\\\\|api-admin-notify\" /Users/sanchezfj/INsitu-AI-2 --include=*.ts --include=*.tsx --include=*.js)",
+      "Bash(find /Users/sanchezfj/INsitu-AI-2/netlify/edge-functions -name *.ts -o -name *.js)",
+      "Bash(grep -n \"PageLoader\\\\|page.loader\\\\|page-loader\" /Users/sanchezfj/INsitu-AI-2/App.tsx /Users/sanchezfj/INsitu-AI-2/components/*.tsx)",
+      "Bash(node -c netlify/functions/_lib/replicateHandlers.ts)",
+      "mcp__MCP_DOCKER__mcp-find",
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\" && grep -c \"try {\" {} && echo \"catch blocks:\" && grep -c \"catch\" {}')",
+      "Bash(npm audit *)",
+      "Bash(python3 -c ' *)",
+      "Bash(grep -v \"^#\\\\|^$\\\\|KEY=\\\\$\\\\|SECRET=\\\\$\\\\|PASSWORD=\\\\$\\\\|TOKEN=\\\\$\\\\|URL=\\\\$\\\\|PASS=\\\\$\" /Users/sanchezfj/INsitu-AI-2/.env)",
+      "Bash(git -C /Users/sanchezfj/INsitu-AI-2 log --oneline --diff-filter=A -- .env)",
+      "Bash(git -C /Users/sanchezfj/INsitu-AI-2 log --all --oneline -- .env)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Installed:', d.get\\('version', 'unknown'\\)\\)\")",
+      "Bash(chmod +x /tmp/update_cors.sh)",
+      "Bash(/tmp/update_cors.sh)",
+      "Bash(npm view *)",
+      "Bash(npm update *)",
+      "Bash(npm uninstall *)",
+      "Bash(npm ls *)",
+      "Bash(node create-icons.js)",
+      "Bash(zip -r insitu-extension-v1.0.0.zip . -x *.git* node_modules/* store-assets/* create-icons.js .DS_Store)",
+      "Bash(zip -r insitu-extension-v1.0.0.zip . -x *.git* node_modules/* store-assets/* create-icons.js .DS_Store *.zip)",
+      "Bash(unzip -l /Users/sanchezfj/INsitu-AI-2/extension/insitu-extension-v1.0.0.zip)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js\\)$\")",
+      "Bash(curl -I https://insitu.company)",
+      "Bash(curl -I https://insitu.company/support)",
+      "Bash(curl -I https://insitu.company/)",
+      "Bash(nslookup insitu.company)",
+      "Bash(curl -s https://insitu.company/.netlify/functions/api-auth -X POST -H 'Content-Type: application/json' -d '{\"username\":\"test\",\"password\":\"test\"}')"
+    ]
+  }
+}

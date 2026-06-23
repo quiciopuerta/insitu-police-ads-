@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>INsitu AI - Spatial Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-on-surface": "#614d75",
+                    "primary-fixed": "#ae8dff",
+                    "on-secondary-fixed-variant": "#69379c",
+                    "surface-dim": "#170529",
+                    "secondary-fixed-dim": "#dab4ff",
+                    "error-container": "#a70138",
+                    "primary": "#ba9eff",
+                    "secondary-dim": "#bb87f1",
+                    "on-surface": "#f2dfff",
+                    "surface": "#170529",
+                    "outline": "#826d97",
+                    "on-primary": "#39008c",
+                    "primary-fixed-dim": "#a27cff",
+                    "on-tertiary": "#6a0934",
+                    "primary-container": "#ae8dff",
+                    "surface-tint": "#ba9eff",
+                    "surface-variant": "#33184d",
+                    "surface-container-highest": "#33184d",
+                    "on-primary-fixed-variant": "#370086",
+                    "outline-variant": "#534067",
+                    "on-tertiary-fixed-variant": "#701039",
+                    "inverse-primary": "#6e39db",
+                    "background": "#170529",
+                    "error-dim": "#d73357",
+                    "on-background": "#f2dfff",
+                    "on-primary-container": "#2b006e",
+                    "secondary": "#c08cf7",
+                    "on-primary-fixed": "#000000",
+                    "on-tertiary-fixed": "#380018",
+                    "on-secondary-container": "#e3c4ff",
+                    "surface-container-lowest": "#000000",
+                    "tertiary-fixed-dim": "#f67ca3",
+                    "on-secondary": "#390068",
+                    "on-error": "#490013",
+                    "error": "#ff6e84",
+                    "tertiary-fixed": "#ff8eb0",
+                    "tertiary-dim": "#f0779d",
+                    "primary-dim": "#8553f3",
+                    "tertiary-container": "#fd81a8",
+                    "on-secondary-fixed": "#4b147d",
+                    "surface-container-high": "#2b1344",
+                    "surface-bright": "#3a1e57",
+                    "on-tertiary-container": "#59002a",
+                    "surface-container-low": "#1d0832",
+                    "on-error-container": "#ffb2b9",
+                    "secondary-container": "#5e2c91",
+                    "secondary-fixed": "#e4c6ff",
+                    "surface-container": "#240e3b",
+                    "inverse-surface": "#fff7ff",
+                    "tertiary": "#ff97b5",
+                    "on-surface-variant": "#baa2cf"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": [
+                            "Space Grotesk"
+                    ],
+                    "display": [
+                            "Space Grotesk"
+                    ],
+                    "body": [
+                            "Inter"
+                    ],
+                    "label": [
+                            "Public Sans"
+                    ]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(12px);
+        }
+
+        .neon-text-fuchsia {
+            color: #d946ef;
+            text-shadow: 0 0 10px rgba(217, 70, 239, 0.5);
+        }
+
+        .neon-border-fuchsia {
+            border-color: rgba(217, 70, 239, 0.5);
+            box-shadow: 0 0 15px rgba(217, 70, 239, 0.2), inset 0 0 10px rgba(217, 70, 239, 0.1);
+        }
+
+        .radial-progress {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 20; /* 80% */
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+
+        /* Custom Scrollbar for Intelligence Feed */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-[#020617] text-white font-body h-screen w-screen overflow-hidden antialiased flex relative">
+<!-- WebGL Background -->
+<div class="fixed inset-0 z-0 pointer-events-none">
+
+<div class="absolute inset-0 bg-gradient-to-b from-[#020617]/95 via-[#020617]/80 to-[#020617]/95"></div>
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(217,70,239,0.15)_0%,transparent_50%)]"></div>
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(139,92,246,0.15)_0%,transparent_50%)]"></div>
+</div>
+<!-- Sidebar Navigation -->
+<aside class="relative z-10 w-64 h-full glass-panel border-r border-white/5 flex flex-col shrink-0">
+<div class="p-8">
+<div class="text-2xl font-display font-black tracking-tighter bg-gradient-to-r from-fuchsia-400 to-violet-500 bg-clip-text text-transparent">INsitu AI</div>
+</div>
+<nav class="flex-1 px-4 space-y-2 mt-4">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 border border-fuchsia-500/20 text-fuchsia-300 font-medium transition-all" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+Home
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">analytics</span>
+SEM Audit
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">image</span>
+Image Audit
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">movie</span>
+Video Audit
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">track_changes</span>
+Competitor Tracker
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+Ads Optimizer
+</a>
+</nav>
+<div class="p-6">
+<button class="w-full py-3 rounded-lg bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-white font-medium shadow-[0_0_20px_rgba(217,70,239,0.3)] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">rocket_launch</span>
+Initialize Audit
+</button>
+</div>
+</aside>
+<!-- Main Command Center Canvas -->
+<main class="relative z-10 flex-1 h-full overflow-y-auto p-8 lg:p-12 flex flex-col gap-8">
+<header class="flex justify-between items-end mb-4">
+<div>
+<h1 class="font-headline text-3xl font-bold text-white mb-2">Command Center</h1>
+<p class="text-gray-400 text-sm">System operational. Monitoring global ad performance.</p>
+</div>
+<button class="px-5 py-2.5 rounded-lg border border-white/10 hover:bg-white/5 text-sm font-medium transition-all flex items-center gap-2">
+            View Full Report <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</header>
+<!-- Global Performance Hero -->
+<section class="glass-card rounded-2xl p-8 relative overflow-hidden flex flex-col lg:flex-row items-center gap-12 border-t border-t-white/10">
+<div class="absolute -right-20 -top-20 w-64 h-64 bg-fuchsia-500/20 rounded-full blur-[80px]"></div>
+<!-- Radial Gauge Placeholder -->
+<div class="relative w-48 h-48 flex items-center justify-center shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-white/5" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-fuchsia-500 radial-progress" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="url(#gradient)" stroke-width="3"></path>
+<defs>
+<lineargradient id="gradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#d946ef"></stop>
+<stop offset="100%" stop-color="#8b5cf6"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="text-fuchsia-400 font-bold text-2xl">80%</span>
+<span class="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Health</span>
+</div>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 z-10">
+<div>
+<p class="font-label text-xs uppercase tracking-widest text-gray-400 mb-2">Total Ad Spend</p>
+<h2 class="font-headline text-5xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">$142,850</h2>
+<div class="flex items-center gap-2 mt-3 text-sm">
+<span class="text-emerald-400 flex items-center"><span class="material-symbols-outlined text-sm mr-1">trending_down</span> -2.4%</span>
+<span class="text-gray-500">vs last period</span>
+</div>
+</div>
+<div>
+<p class="font-label text-xs uppercase tracking-widest text-gray-400 mb-2">Blended ROAS</p>
+<h2 class="font-headline text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-violet-400">4.2x</h2>
+<div class="flex items-center gap-2 mt-3 text-sm">
+<span class="text-emerald-400 flex items-center"><span class="material-symbols-outlined text-sm mr-1">trending_up</span> +0.8x</span>
+<span class="text-gray-500">vs last period</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Active Audits -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline text-lg font-semibold text-white">Active Audits</h3>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Audit Card 1 -->
+<div class="glass-card p-6 rounded-xl relative group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2.5 bg-rose-500/10 text-rose-400 rounded-lg border border-rose-500/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+</div>
+<span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-300 bg-rose-500/10 border border-rose-500/20 rounded-full">Needs Action</span>
+</div>
+<h4 class="font-headline font-semibold text-white mb-1">SEM Audit</h4>
+<p class="text-sm text-gray-400 mb-6">3 Critical Issues detected in Brand campaigns.</p>
+<div class="w-full bg-white/5 rounded-full h-1.5 mb-2 overflow-hidden">
+<div class="bg-rose-500 h-1.5 rounded-full" style="width: 45%"></div>
+</div>
+<div class="flex justify-between text-xs text-gray-500 mb-6">
+<span>Scan Complete</span>
+<span>45% Health</span>
+</div>
+<button class="w-full py-2 rounded border border-white/10 hover:bg-white/5 text-sm transition-all text-white">Review Issues</button>
+</div>
+<!-- Audit Card 2 -->
+<div class="glass-card p-6 rounded-xl relative group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2.5 bg-fuchsia-500/10 text-fuchsia-400 rounded-lg border border-fuchsia-500/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">movie</span>
+</div>
+<span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-fuchsia-300 bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-full flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-fuchsia-400 rounded-full animate-pulse"></span> Running
+                    </span>
+</div>
+<h4 class="font-headline font-semibold text-white mb-1">Video Audit</h4>
+<p class="text-sm text-gray-400 mb-6">Processing 12 new video assets for TikTok.</p>
+<div class="w-full bg-white/5 rounded-full h-1.5 mb-2 overflow-hidden">
+<div class="bg-gradient-to-r from-fuchsia-500 to-violet-500 h-1.5 rounded-full relative w-[60%]">
+<div class="absolute inset-0 bg-white/20 animate-[pulse_2s_ease-in-out_infinite]"></div>
+</div>
+</div>
+<div class="flex justify-between text-xs text-gray-500 mb-6">
+<span>Analyzing Hooks...</span>
+<span>60%</span>
+</div>
+<button class="w-full py-2 rounded border border-white/10 hover:bg-white/5 text-sm transition-all text-white opacity-50 cursor-not-allowed">Review Issues</button>
+</div>
+<!-- Audit Card 3 -->
+<div class="glass-card p-6 rounded-xl relative group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">image</span>
+</div>
+<span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-full">Optimal</span>
+</div>
+<h4 class="font-headline font-semibold text-white mb-1">Image Audit</h4>
+<p class="text-sm text-gray-400 mb-6">All static assets meet structural guidelines.</p>
+<div class="w-full bg-white/5 rounded-full h-1.5 mb-2 overflow-hidden">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+<div class="flex justify-between text-xs text-gray-500 mb-6">
+<span>Fully Optimized</span>
+<span>100% Health</span>
+</div>
+<button class="w-full py-2 rounded border border-white/10 hover:bg-white/5 text-sm transition-all text-white">View Log</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Right Sidebar: Live Intelligence -->
+<aside class="relative z-10 w-80 h-full glass-panel border-l border-white/5 flex flex-col shrink-0 bg-[#020617]/50">
+<div class="p-6 border-b border-white/5 flex items-center justify-between">
+<h3 class="font-headline font-semibold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-fuchsia-400 text-sm">wifi_tethering</span>
+            Live Intelligence
+        </h3>
+<span class="flex h-2 w-2 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-fuchsia-500"></span>
+</span>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<!-- Feed Item -->
+<div class="relative pl-4 border-l border-rose-500/30">
+<div class="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-[#020617] border-2 border-rose-500"></div>
+<p class="text-[10px] text-gray-500 font-mono mb-1">JUST NOW</p>
+<h4 class="text-sm font-medium text-white mb-1">High CPC Anomaly</h4>
+<p class="text-xs text-gray-400 leading-relaxed">Brand campaign 'Summer Sale' CPC spiked 45% above 7-day moving average.</p>
+<button class="mt-2 text-xs text-rose-400 hover:text-rose-300 font-medium">Investigate →</button>
+</div>
+<!-- Feed Item -->
+<div class="relative pl-4 border-l border-fuchsia-500/30">
+<div class="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-[#020617] border-2 border-fuchsia-500"></div>
+<p class="text-[10px] text-gray-500 font-mono mb-1">12 MINS AGO</p>
+<h4 class="text-sm font-medium text-white mb-1">Opportunity Detected</h4>
+<p class="text-xs text-gray-400 leading-relaxed">Video ad 'Demo_V2' has 2x higher hook rate. Suggest reallocating $5k budget.</p>
+<button class="mt-2 text-xs text-fuchsia-400 hover:text-fuchsia-300 font-medium">Apply Recommendation →</button>
+</div>
+<!-- Feed Item -->
+<div class="relative pl-4 border-l border-white/10">
+<div class="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-[#020617] border-2 border-gray-500"></div>
+<p class="text-[10px] text-gray-500 font-mono mb-1">1 HOUR AGO</p>
+<h4 class="text-sm font-medium text-white mb-1">Audit Completed</h4>
+<p class="text-xs text-gray-400 leading-relaxed">Competitor Tracker finished scanning 4 key rivals. 2 new creatives found.</p>
+</div>
+<!-- Feed Item -->
+<div class="relative pl-4 border-l border-white/10">
+<div class="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-[#020617] border-2 border-gray-500"></div>
+<p class="text-[10px] text-gray-500 font-mono mb-1">3 HOURS AGO</p>
+<h4 class="text-sm font-medium text-white mb-1">System Update</h4>
+<p class="text-xs text-gray-400 leading-relaxed">Ads Optimizer algorithm updated to v2.4.</p>
+</div>
+</div>
+</aside>
+</body></html>

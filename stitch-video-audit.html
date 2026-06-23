@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>INsitu AI - Video Audit</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700;800;900&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#1d0832",
+                        "secondary-fixed-dim": "#dab4ff",
+                        "tertiary-container": "#fd81a8",
+                        "on-tertiary-fixed-variant": "#701039",
+                        "background": "#170529",
+                        "on-error-container": "#ffb2b9",
+                        "primary-fixed": "#ae8dff",
+                        "surface-variant": "#33184d",
+                        "primary": "#ba9eff",
+                        "inverse-surface": "#fff7ff",
+                        "on-secondary-fixed": "#4b147d",
+                        "on-secondary-container": "#e3c4ff",
+                        "on-secondary-fixed-variant": "#69379c",
+                        "surface-dim": "#170529",
+                        "on-primary-fixed-variant": "#370086",
+                        "surface-tint": "#ba9eff",
+                        "secondary": "#c08cf7",
+                        "on-secondary": "#390068",
+                        "outline-variant": "#534067",
+                        "on-tertiary": "#6a0934",
+                        "primary-fixed-dim": "#a27cff",
+                        "tertiary-dim": "#f0779d",
+                        "secondary-fixed": "#e4c6ff",
+                        "on-tertiary-fixed": "#380018",
+                        "on-primary-container": "#2b006e",
+                        "tertiary-fixed-dim": "#f67ca3",
+                        "on-primary": "#39008c",
+                        "secondary-dim": "#bb87f1",
+                        "surface-container-highest": "#33184d",
+                        "surface-container-lowest": "#000000",
+                        "error": "#ff6e84",
+                        "surface-container": "#240e3b",
+                        "outline": "#826d97",
+                        "tertiary-fixed": "#ff8eb0",
+                        "inverse-on-surface": "#614d75",
+                        "primary-container": "#ae8dff",
+                        "surface-bright": "#3a1e57",
+                        "surface": "#170529",
+                        "secondary-container": "#5e2c91",
+                        "primary-dim": "#8553f3",
+                        "on-primary-fixed": "#000000",
+                        "surface-container-high": "#2b1344",
+                        "on-surface-variant": "#baa2cf",
+                        "on-background": "#f2dfff",
+                        "inverse-primary": "#6e39db",
+                        "error-container": "#a70138",
+                        "on-surface": "#f2dfff",
+                        "on-tertiary-container": "#59002a",
+                        "error-dim": "#d73357",
+                        "tertiary": "#ff97b5",
+                        "on-error": "#490013"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {},
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "display": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Public Sans"]
+                    },
+                    "fontSize": {}
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(36, 14, 59, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(130, 109, 151, 0.1);
+        }
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+        }
+        .neon-text-glow {
+            text-shadow: 0 0 10px rgba(186, 158, 255, 0.4);
+        }
+        /* Hide scrollbar for clean UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(130, 109, 151, 0.3);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(130, 109, 151, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body antialiased overflow-x-hidden min-h-screen flex flex-col md:flex-row">
+<!-- TopNavBar (Web - Hidden, Mobile - Visible) -->
+<nav class="md:hidden fixed top-0 left-0 w-full z-40 flex justify-between items-center px-6 h-16 bg-background/80 backdrop-blur-xl dark:bg-background/80 bg-surface-container-low/50 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary font-bold text-xl cursor-pointer">menu</span>
+<span class="font-headline text-xl font-bold text-primary">INsitu AI</span>
+</div>
+<div class="flex items-center gap-4 text-primary">
+<span class="material-symbols-outlined hover:text-secondary transition-colors cursor-pointer active:opacity-80" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined hover:text-secondary transition-colors cursor-pointer active:opacity-80" data-icon="settings">settings</span>
+</div>
+</nav>
+<!-- SideNavBar (Web - Visible, Mobile - Hidden) -->
+<aside class="hidden md:flex flex-col h-screen fixed left-0 top-0 pt-6 pb-4 bg-surface-container-lowest/90 backdrop-blur-2xl dark:bg-surface-container-lowest/90 bg-surface-container-lowest shadow-xl docked left-0 h-full w-64 z-40">
+<div class="px-6 pb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg neon-glow">
+<span class="font-headline font-bold text-on-primary text-xl">IN</span>
+</div>
+<div>
+<h1 class="font-headline text-2xl font-black text-primary tracking-tighter">INsitu AI</h1>
+<p class="font-body text-xs text-on-surface-variant">Ad Intelligence</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant/70 hover:bg-surface-container-high/50 hover:text-on-surface transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-body text-label-md">Home</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant/70 hover:bg-surface-container-high/50 hover:text-on-surface transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="search_insights">search_insights</span>
+<span class="font-body text-label-md">Search Audit</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant/70 hover:bg-surface-container-high/50 hover:text-on-surface transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="image_search">image_search</span>
+<span class="font-body text-label-md">Image Audit</span>
+</a>
+<!-- ACTIVE TAB -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary-container/30 text-secondary border-r-4 border-secondary font-bold transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="video_settings" data-weight="fill" style="font-variation-settings: 'FILL' 1;">video_settings</span>
+<span class="font-body text-label-md">Video Audit</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant/70 hover:bg-surface-container-high/50 hover:text-on-surface transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="font-body text-label-md">Competitor Tracker</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant/70 hover:bg-surface-container-high/50 hover:text-on-surface transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+<span class="font-body text-label-md">Ads Optimizer</span>
+</a>
+</nav>
+<div class="px-4 mt-auto space-y-4">
+<button class="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-secondary text-on-primary font-bold text-sm shadow-lg hover:shadow-primary/50 transition-all duration-300 transform hover:-translate-y-0.5">
+                Upgrade Plan
+            </button>
+<div class="pt-4 border-t border-outline-variant/30 space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant/70 hover:bg-surface-container-high/50 hover:text-on-surface transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span>
+<span class="font-body text-xs">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant/70 hover:bg-surface-container-high/50 hover:text-on-surface transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="settings">settings</span>
+<span class="font-body text-xs">Settings</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 pt-16 md:pt-0 p-4 md:p-8 min-h-screen pb-24 md:pb-8 relative">
+<!-- Abstract Background Elements for Depth -->
+<div class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="absolute bottom-0 left-1/2 w-[600px] h-[400px] bg-secondary/10 rounded-full blur-[100px] pointer-events-none transform -translate-x-1/2"></div>
+<!-- Page Header -->
+<header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 relative z-10">
+<div>
+<div class="flex items-center gap-2 text-primary mb-2">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+<span class="font-label text-xs uppercase tracking-wider font-semibold">Campaign: Summer Blast 24</span>
+</div>
+<h2 class="font-headline text-3xl md:text-4xl font-black text-on-surface tracking-tight neon-text-glow">TikTok Ad #4 - Creative Audit</h2>
+<p class="text-on-surface-variant mt-2 font-body text-sm max-w-2xl">Granular frame-by-frame analysis of visual attention, emotional resonance, and audio sentiment to optimize conversion rates.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 rounded-lg glass-panel text-on-surface text-sm font-semibold hover:bg-surface-container-high transition-colors flex items-center gap-2 border border-outline-variant/50">
+<span class="material-symbols-outlined text-sm">download</span> Export Report
+                </button>
+<button class="px-4 py-2 rounded-lg bg-primary text-on-primary text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary-dim transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">auto_awesome</span> Auto-Optimize
+                </button>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
+<!-- VIDEO PLAYER & TIMELINE SINK (Main Column - Spans 8) -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Video Player Container -->
+<div class="glass-panel rounded-2xl overflow-hidden shadow-2xl relative group">
+<div class="aspect-video bg-black relative flex items-center justify-center">
+<!-- Placeholder for actual video content -->
+<div class="absolute inset-0 bg-cover bg-center opacity-60" data-alt="A highly detailed, cinematic still from a modern TikTok-style vertical video advertisement. A vibrant, trendy young adult wearing bright neon athleisure wear is holding a sleek new energy drink can. The background is a slightly blurred, high-end urban gym with dramatic, moody neon lighting casting purple and blue rim lights on the subject. The style is fast-paced, high-contrast, energetic, and optimized for social media consumption. 4k resolution, hyper-realistic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAz-TW5x4fiGtDl-3_zRGWdWBXnQKejFGbCtGX_EqForlLuZhZg5rYR6ibcBysKcifo7xjBYzQg7AF8x1S1UaF92EpvdJXoHdEBoQcvb3kj5iXsHq106S8-I_7h74Rx4KmLXNAqtfwFLN7bRUzlrWMekeqvqdgoGtczVsX8meVHwwYt-BieFNaDLRQF4trfHbZTBjBzfo3fAEzhjiCcHpBEFGGWlXHVJeomO0tSuErfL1NrvkGm3uvJctCrTGLTydixIFncuiLyqZA')"></div>
+<!-- Overlay UI elements simulating analysis -->
+<div class="absolute inset-0 pointer-events-none">
+<!-- Facial tracking box mockup -->
+<div class="absolute top-[30%] left-[45%] w-24 h-24 border-2 border-secondary rounded-lg border-dashed opacity-70 animate-pulse">
+<div class="absolute -top-6 left-0 bg-secondary text-on-secondary text-[10px] px-1 font-bold rounded">Surprise 87%</div>
+</div>
+<!-- Object tracking mockup -->
+<div class="absolute bottom-[20%] right-[30%] w-16 h-32 border-2 border-primary rounded-lg border-dashed opacity-50"></div>
+</div>
+<!-- Video Controls Overlay -->
+<div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end">
+<div class="flex items-center justify-between text-white mb-2">
+<div class="flex items-center gap-4">
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined" data-weight="fill">play_arrow</span></button>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">skip_previous</span></button>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">skip_next</span></button>
+<span class="font-body text-xs font-mono">00:04.2 / 00:15.0</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">volume_up</span></button>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">fullscreen</span></button>
+</div>
+</div>
+<!-- Simple progress bar (visual only) -->
+<div class="h-1 bg-white/30 rounded-full w-full relative cursor-pointer">
+<div class="absolute top-0 left-0 h-full bg-primary rounded-full" style="width: 28%;"></div>
+<div class="absolute top-1/2 left-[28%] w-3 h-3 bg-white rounded-full transform -translate-y-1/2 -translate-x-1/2 shadow-lg"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Sync Data -->
+<div class="glass-panel p-5 rounded-2xl">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-headline font-semibold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">timeline</span>
+                            Timeline Sync Data
+                        </h3>
+<div class="flex gap-2">
+<span class="flex items-center gap-1 text-[10px] font-label px-2 py-1 bg-primary/20 text-primary rounded-full border border-primary/30">
+<span class="w-2 h-2 rounded-full bg-primary"></span> Retention
+                            </span>
+<span class="flex items-center gap-1 text-[10px] font-label px-2 py-1 bg-tertiary/20 text-tertiary rounded-full border border-tertiary/30">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> Emotion Intensity
+                            </span>
+</div>
+</div>
+<!-- Complex Timeline Visualization (Simulated with CSS) -->
+<div class="relative h-40 w-full mt-2 border-b border-l border-outline-variant/30 pl-2 pb-2 flex items-end">
+<!-- Y-Axis Labels -->
+<div class="absolute left-[-20px] top-0 h-full flex flex-col justify-between text-[10px] text-on-surface-variant font-mono">
+<span>100</span>
+<span>50</span>
+<span>0</span>
+</div>
+<!-- Retention Graph (Area) -->
+<div class="absolute bottom-2 left-2 right-0 h-[calc(100%-8px)] overflow-hidden">
+<div class="w-full h-full relative" style="background: linear-gradient(to right, rgba(186,158,255,0.2) 0%, rgba(186,158,255,0.2) 20%, rgba(186,158,255,0.05) 50%, rgba(186,158,255,0.02) 100%); clip-path: polygon(0 0, 10% 2%, 20% 5%, 30% 15%, 40% 40%, 50% 60%, 60% 75%, 70% 80%, 80% 85%, 90% 88%, 100% 90%, 100% 100%, 0% 100%);"></div>
+<!-- Retention Line -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,0 Q10,2 20,5 T40,40 T60,75 T80,85 T100,90" fill="none" stroke="#ba9eff" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+<!-- Emotion Graph (Line) -->
+<div class="absolute bottom-2 left-2 right-0 h-[calc(100%-8px)] pointer-events-none">
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,80 Q5,40 10,20 T20,60 T30,30 T40,70 T50,20 T60,80 T70,40 T80,90 T90,50 T100,85" fill="none" stroke="#ff97b5" stroke-dasharray="4,2" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+<!-- Playhead Scrubber Line -->
+<div class="absolute top-0 bottom-2 w-px bg-white z-10 shadow-[0_0_8px_rgba(255,255,255,0.8)]" style="left: 30%;">
+<div class="absolute -top-2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] border-t-white"></div>
+</div>
+<!-- Heatmap Track below main graph -->
+<div class="absolute -bottom-6 left-2 right-0 h-4 rounded overflow-hidden flex">
+<div class="h-full bg-error" style="width: 15%;" title="High Drop-off Risk"></div>
+<div class="h-full bg-primary-container" style="width: 25%;"></div>
+<div class="h-full bg-surface-variant" style="width: 40%;"></div>
+<div class="h-full bg-secondary-container" style="width: 20%;" title="CTA Engagement"></div>
+</div>
+<!-- X-Axis (Time) -->
+<div class="absolute -bottom-12 left-2 right-0 flex justify-between text-[10px] text-on-surface-variant font-mono">
+<span>0s</span>
+<span>3s</span>
+<span>6s</span>
+<span>9s</span>
+<span>12s</span>
+<span>15s</span>
+</div>
+</div>
+<div class="mt-14 grid grid-cols-3 gap-4 border-t border-outline-variant/30 pt-4">
+<div class="text-center">
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest">Avg Retention</p>
+<p class="font-headline text-xl font-bold text-primary">42.8%</p>
+</div>
+<div class="text-center border-l border-r border-outline-variant/30">
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest">Peak Emotion</p>
+<p class="font-headline text-xl font-bold text-tertiary">Surprise <span class="text-xs font-normal opacity-70">@2.1s</span></p>
+</div>
+<div class="text-center">
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest">Engagement Score</p>
+<p class="font-headline text-xl font-bold text-secondary">7.4<span class="text-xs font-normal opacity-70">/10</span></p>
+</div>
+</div>
+</div>
+</div>
+<!-- ANALYTICS SIDEBAR (Right Column - Spans 4) -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Key Moments -->
+<div class="glass-panel p-5 rounded-2xl flex-1 flex flex-col">
+<h3 class="font-headline font-semibold text-lg flex items-center gap-2 mb-4 border-b border-outline-variant/30 pb-3">
+<span class="material-symbols-outlined text-primary">flag</span>
+                        Key Moments
+                    </h3>
+<div class="space-y-4 overflow-y-auto flex-1 pr-2">
+<!-- Hook Analysis -->
+<div class="p-3 rounded-xl bg-surface-container-high/50 border border-outline-variant/30 hover:border-primary/50 transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 w-1 h-full bg-secondary"></div>
+<div class="flex justify-between items-start mb-1">
+<span class="font-label text-xs font-bold text-secondary tracking-wider uppercase">00:00 - 00:03</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant group-hover:text-primary">play_circle</span>
+</div>
+<h4 class="font-body font-semibold text-sm text-on-surface">The Hook: Visual Disruption</h4>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Strong opening frame. The sudden color shift (blue to neon pink) generated a 92% visual attention spike. High probability of scroll-stopping.</p>
+<div class="mt-2 flex gap-2">
+<span class="text-[9px] px-2 py-0.5 rounded-full bg-secondary-container/30 text-secondary border border-secondary/20">High Impact</span>
+<span class="text-[9px] px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant border border-outline/30">Color Theory</span>
+</div>
+</div>
+<!-- Attention Drop -->
+<div class="p-3 rounded-xl bg-surface-container-high/50 border border-error/20 hover:border-error/50 transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start mb-1">
+<span class="font-label text-xs font-bold text-error tracking-wider uppercase">00:05 - 00:08</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant group-hover:text-primary">play_circle</span>
+</div>
+<h4 class="font-body font-semibold text-sm text-on-surface">Attention Drop: Pacing Lull</h4>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Retention falls rapidly from 70% to 45% during the product explanation phase. The speaker is static for too long.</p>
+<div class="mt-2 text-[10px] text-error flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">warning</span> Recommendation: Add b-roll or text overlays.
+                            </div>
+</div>
+<!-- CTA Delivery -->
+<div class="p-3 rounded-xl bg-surface-container-high/50 border border-outline-variant/30 hover:border-primary/50 transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+<div class="flex justify-between items-start mb-1">
+<span class="font-label text-xs font-bold text-primary tracking-wider uppercase">00:12 - 00:15</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant group-hover:text-primary">play_circle</span>
+</div>
+<h4 class="font-body font-semibold text-sm text-on-surface">CTA Delivery</h4>
+<p class="text-xs text-on-surface-variant mt-1 leading-relaxed">Clear call-to-action ("Click the link below"). Audio sentiment is positive, but visual gaze tracking shows eyes wandering away from the button graphic.</p>
+<div class="mt-2 w-full bg-surface-container rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 65%"></div>
+</div>
+<p class="text-[9px] text-right mt-1 text-on-surface-variant">65% Visual Focus on CTA</p>
+</div>
+</div>
+</div>
+<!-- Audio Sentiment Analysis -->
+<div class="glass-panel p-5 rounded-2xl relative overflow-hidden">
+<div class="absolute -right-10 -bottom-10 w-32 h-32 bg-tertiary/10 rounded-full blur-[30px] pointer-events-none"></div>
+<h3 class="font-headline font-semibold text-lg flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-tertiary">graphic_eq</span>
+                        Audio &amp; Transcript Sentiment
+                    </h3>
+<div class="space-y-4 relative z-10">
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-on-surface">Energy Level (Voice)</span>
+<span class="text-tertiary font-mono">88%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2">
+<div class="bg-gradient-to-r from-tertiary-container to-tertiary h-2 rounded-full" style="width: 88%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-on-surface">Pacing (WPM)</span>
+<span class="text-primary font-mono">Fast (165)</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2">
+<div class="bg-gradient-to-r from-primary-container to-primary h-2 rounded-full" style="width: 75%"></div>
+</div>
+</div>
+<div class="pt-3 border-t border-outline-variant/30">
+<p class="text-xs font-semibold text-on-surface-variant mb-2">Transcript Excerpt (00:04)</p>
+<div class="p-3 bg-surface-container/50 rounded-lg border border-outline-variant/20 italic text-sm text-on-surface font-serif">
+                                "...you literally won't believe how this changed my <span class="text-tertiary font-bold not-italic border-b border-tertiary/50">entire routine</span>. I used to struggle with..."
+                            </div>
+<div class="mt-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-sm">sentiment_excited</span>
+<span class="text-[11px] text-on-surface-variant">Detected Sentiment: Highly Enthusiastic / Urgent</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile - Visible, Web - Hidden) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 px-4 bg-surface-container-lowest/80 backdrop-blur-lg rounded-t-xl shadow-[0_-4px_10px_rgba(0,0,0,0.3)] border-t border-outline-variant/10">
+<div class="flex flex-col items-center justify-center text-on-surface-variant active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined mb-1 text-xl" data-icon="grid_view">grid_view</span>
+<span class="font-label text-[10px]">Hub</span>
+</div>
+<!-- Active Bottom Tab -->
+<div class="flex flex-col items-center justify-center text-secondary bg-secondary-container/20 rounded-xl px-6 py-1 active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined mb-1 text-xl" data-icon="analytics" data-weight="fill" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-label text-[10px] font-bold">Audits</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined mb-1 text-xl" data-icon="lightbulb">lightbulb</span>
+<span class="font-label text-[10px]">Insights</span>
+</div>
+</nav>
+</body></html>

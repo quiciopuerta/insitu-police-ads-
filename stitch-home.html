@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>INsitu AI - Home Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#a70138",
+                    "surface-container-high": "#2b1344",
+                    "error": "#ff6e84",
+                    "inverse-surface": "#fff7ff",
+                    "primary-container": "#ae8dff",
+                    "on-tertiary": "#6a0934",
+                    "secondary-fixed": "#e4c6ff",
+                    "surface-tint": "#ba9eff",
+                    "outline": "#826d97",
+                    "error-dim": "#d73357",
+                    "on-secondary-fixed": "#4b147d",
+                    "on-error": "#490013",
+                    "on-primary": "#39008c",
+                    "background": "#170529",
+                    "tertiary": "#ff97b5",
+                    "surface-container": "#240e3b",
+                    "secondary-container": "#5e2c91",
+                    "on-primary-container": "#2b006e",
+                    "tertiary-fixed-dim": "#f67ca3",
+                    "on-secondary-container": "#e3c4ff",
+                    "outline-variant": "#534067",
+                    "on-tertiary-container": "#59002a",
+                    "primary-fixed-dim": "#a27cff",
+                    "on-surface-variant": "#baa2cf",
+                    "on-error-container": "#ffb2b9",
+                    "tertiary-container": "#fd81a8",
+                    "surface-bright": "#3a1e57",
+                    "surface-container-lowest": "#000000",
+                    "secondary-dim": "#bb87f1",
+                    "tertiary-fixed": "#ff8eb0",
+                    "on-background": "#f2dfff",
+                    "on-primary-fixed": "#000000",
+                    "secondary-fixed-dim": "#dab4ff",
+                    "on-secondary": "#390068",
+                    "primary": "#ba9eff",
+                    "inverse-primary": "#6e39db",
+                    "on-tertiary-fixed-variant": "#701039",
+                    "on-tertiary-fixed": "#380018",
+                    "surface-container-highest": "#33184d",
+                    "tertiary-dim": "#f0779d",
+                    "inverse-on-surface": "#614d75",
+                    "on-primary-fixed-variant": "#370086",
+                    "secondary": "#c08cf7",
+                    "primary-fixed": "#ae8dff",
+                    "surface-dim": "#170529",
+                    "primary-dim": "#8553f3",
+                    "on-surface": "#f2dfff",
+                    "surface-variant": "#33184d",
+                    "surface": "#170529",
+                    "on-secondary-fixed-variant": "#69379c",
+                    "surface-container-low": "#1d0832"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": [
+                            "Space Grotesk"
+                    ],
+                    "display": [
+                            "Space Grotesk"
+                    ],
+                    "body": [
+                            "Inter"
+                    ],
+                    "label": [
+                            "Public Sans"
+                    ]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(36, 14, 59, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(186, 158, 255, 0.15);
+        }
+        
+        .orbit-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .orbital-node {
+            position: absolute;
+            pointer-events: auto;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .orbital-node:hover {
+            transform: scale(1.05) translateY(-5px);
+            z-index: 50;
+        }
+
+        @keyframes float-1 {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+        @keyframes float-2 {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(-2deg); }
+        }
+        @keyframes float-3 {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 40px rgba(186, 158, 255, 0.2), inset 0 0 20px rgba(186, 158, 255, 0.1); }
+            50% { box-shadow: 0 0 60px rgba(186, 158, 255, 0.4), inset 0 0 30px rgba(186, 158, 255, 0.2); }
+        }
+
+        .float-1 { animation: float-1 8s ease-in-out infinite; }
+        .float-2 { animation: float-2 10s ease-in-out infinite; }
+        .float-3 { animation: float-3 7s ease-in-out infinite; }
+        .glow-pulse { animation: pulse-glow 4s ease-in-out infinite; }
+
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen overflow-hidden antialiased relative">
+<!-- WebGL Background -->
+<div class="fixed inset-0 z-0">
+<!-- STITCH_SHADER_START:ANIMATION_4 class="absolute inset-0 w-full h-full opacity-60 mix-blend-screen" -->
+<div class="absolute inset-0 w-full h-full opacity-60 mix-blend-screen" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_4" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_4');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+varying vec2 v_texCoord;
+
+void main() {
+    vec2 uv = v_texCoord;
+    vec2 mouse = u_mouse / u_resolution;
+    
+    // Deep obsidian base
+    vec3 color = vec3(0.02, 0.01, 0.05);
+    
+    // Ambient glow following mouse
+    float dist = distance(uv, mouse);
+    float glow = 1.0 - smoothstep(0.0, 0.6, dist);
+    color += vec3(0.2, 0.05, 0.4) * glow * 0.3;
+    
+    // Subtle pulsing spots
+    vec2 p1 = vec2(0.2, 0.8) + 0.1 * vec2(sin(u_time * 0.5), cos(u_time * 0.3));
+    vec2 p2 = vec2(0.8, 0.2) + 0.1 * vec2(cos(u_time * 0.4), sin(u_time * 0.6));
+    
+    float pulse1 = 1.0 - smoothstep(0.0, 0.4, distance(uv, p1));
+    float pulse2 = 1.0 - smoothstep(0.0, 0.4, distance(uv, p2));
+    
+    color += vec3(0.3, 0.0, 0.5) * pulse1 * (0.5 + 0.5 * sin(u_time * 0.7));
+    color += vec3(0.5, 0.0, 0.3) * pulse2 * (0.5 + 0.5 * cos(u_time * 0.8));
+    
+    // Very subtle noise/stars
+    float n = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
+    if(n > 0.995) color += vec3(0.8, 0.7, 1.0) * 0.5;
+
+    gl_FragColor = vec4(color, 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_4 -->
+<div class="absolute inset-0 bg-gradient-to-b from-background/80 via-transparent to-background/90 mix-blend-multiply"></div>
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#170529_100%)]"></div>
+</div>
+<!-- Independent Brand Logo -->
+<div class="absolute top-8 left-8 z-50">
+<div class="text-2xl font-display font-black tracking-tighter text-primary">INsitu AI</div>
+</div>
+<!-- Top Navbar (Predicted Shared Component - Suppressed visually but structurally present for alignment if needed, using custom immersive rules) -->
+<!-- Suppressed TopNavBar as per prompt: "NO standard top navbar." -->
+<!-- Bottom Navbar (Predicted Shared Component) -->
+<nav class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex gap-4 px-6 py-3 bg-surface-container/30 backdrop-blur-2xl border border-white/10 docked rounded-full shadow-2xl md:hidden">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full w-12 h-12 transition-all scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">adjust</span>
+<span class="font-label text-xs uppercase tracking-widest hidden">Hub</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-12 h-12 hover:bg-white/10 rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label text-xs uppercase tracking-widest hidden">SEM</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-12 h-12 hover:bg-white/10 rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">visibility</span>
+<span class="font-label text-xs uppercase tracking-widest hidden">Audits</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-12 h-12 hover:bg-white/10 rounded-full transition-all" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label text-xs uppercase tracking-widest hidden">Insights</span>
+</a>
+</nav>
+<!-- Main Spatial Interface -->
+<main class="relative z-10 w-full h-screen flex items-center justify-center">
+<div class="orbit-container">
+<!-- Center Command Hub -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40">
+<div class="w-80 h-80 rounded-full glass-panel flex flex-col items-center justify-center relative glow-pulse border-primary/30">
+<div class="absolute inset-0 rounded-full bg-gradient-to-br from-primary-container/20 to-transparent border border-primary/20"></div>
+<div class="relative z-10 text-center space-y-4">
+<div>
+<p class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-1">Total Ad Spend</p>
+<h1 class="font-headline text-5xl font-bold bg-gradient-to-r from-primary to-secondary gradient-text">$124,592</h1>
+</div>
+<div class="w-16 h-[1px] bg-outline-variant mx-auto"></div>
+<div>
+<p class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-1">Global ROAS</p>
+<div class="flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-tertiary">trending_up</span>
+<h2 class="font-headline text-3xl font-semibold text-tertiary">4.2x</h2>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Orbital 1: SEM Audit -->
+<div class="orbital-node float-1" style="top: 20%; left: 25%;">
+<div class="glass-panel p-6 rounded-2xl w-64 border-secondary/30 relative overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+<div class="relative z-10 flex items-start gap-4">
+<div class="p-3 bg-secondary-container/50 rounded-lg text-secondary border border-secondary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+</div>
+<div>
+<h3 class="font-headline font-semibold text-on-surface mb-1">SEM Audit</h3>
+<p class="text-sm text-on-surface-variant">3 Critical Issues</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Orbital 2: Image Audit -->
+<div class="orbital-node float-2" style="top: 15%; right: 25%;">
+<div class="glass-panel p-6 rounded-2xl w-64 border-tertiary/30 relative overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-gradient-to-br from-tertiary/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+<div class="relative z-10 flex items-start gap-4">
+<div class="p-3 bg-tertiary-container/50 rounded-lg text-tertiary border border-tertiary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">image</span>
+</div>
+<div>
+<h3 class="font-headline font-semibold text-on-surface mb-1">Image Audit</h3>
+<p class="text-sm text-on-surface-variant">85% Optimization</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Orbital 3: Video Audit -->
+<div class="orbital-node float-3" style="bottom: 25%; left: 18%;">
+<div class="glass-panel p-6 rounded-2xl w-64 border-primary/30 relative overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+<div class="relative z-10 flex items-start gap-4">
+<div class="p-3 bg-surface-bright/50 rounded-lg text-primary border border-primary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">movie</span>
+</div>
+<div>
+<h3 class="font-headline font-semibold text-on-surface mb-1">Video Audit</h3>
+<p class="text-sm text-on-surface-variant">Processing 12 assets...</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Orbital 4: Ads Optimizer -->
+<div class="orbital-node float-1" style="bottom: 20%; right: 20%;">
+<div class="glass-panel p-6 rounded-2xl w-64 border-error/30 relative overflow-hidden group cursor-pointer">
+<div class="absolute inset-0 bg-gradient-to-br from-error/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+<div class="relative z-10 flex items-start gap-4">
+<div class="p-3 bg-error-container/50 rounded-lg text-error border border-error/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h3 class="font-headline font-semibold text-on-surface mb-1">Ads Optimizer</h3>
+<p class="text-sm text-on-surface-variant">+12% Pot. Uplift</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- SideNav Web (Predicted Shared Component - Suppressed to prioritize the canvas, adhering to 'NO standard sidebar' prompt, but conceptually handled by the hub design) -->
+<script>
+        // Simple parallax effect for orbitals based on mouse movement
+        document.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 50;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 50;
+            
+            const orbitals = document.querySelectorAll('.orbital-node');
+            orbitals.forEach((orbital, index) => {
+                const speed = (index + 1) * 0.5;
+                orbital.style.transform = `translate(${xAxis * speed}px, ${yAxis * speed}px)`;
+            });
+        });
+    </script>
+</body></html>

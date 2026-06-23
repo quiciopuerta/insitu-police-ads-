@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>INsitu AI - Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700;800&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-dim": "#d73357",
+                    "on-tertiary": "#6a0934",
+                    "tertiary-container": "#fd81a8",
+                    "primary": "#ba9eff",
+                    "tertiary-dim": "#f0779d",
+                    "secondary-dim": "#bb87f1",
+                    "on-secondary-fixed-variant": "#69379c",
+                    "on-tertiary-fixed": "#380018",
+                    "tertiary": "#ff97b5",
+                    "surface-tint": "#ba9eff",
+                    "secondary-fixed": "#e4c6ff",
+                    "secondary": "#c08cf7",
+                    "surface-bright": "#3a1e57",
+                    "on-error-container": "#ffb2b9",
+                    "on-secondary": "#390068",
+                    "on-primary-container": "#2b006e",
+                    "on-error": "#490013",
+                    "secondary-container": "#5e2c91",
+                    "on-surface-variant": "#baa2cf",
+                    "inverse-surface": "#fff7ff",
+                    "surface-variant": "#33184d",
+                    "surface-container-low": "#1d0832",
+                    "primary-fixed": "#ae8dff",
+                    "on-tertiary-fixed-variant": "#701039",
+                    "on-primary-fixed": "#000000",
+                    "inverse-primary": "#6e39db",
+                    "outline": "#826d97",
+                    "outline-variant": "#534067",
+                    "on-primary": "#39008c",
+                    "primary-container": "#ae8dff",
+                    "surface-dim": "#170529",
+                    "on-secondary-fixed": "#4b147d",
+                    "tertiary-fixed-dim": "#f67ca3",
+                    "surface-container-highest": "#33184d",
+                    "on-secondary-container": "#e3c4ff",
+                    "primary-fixed-dim": "#a27cff",
+                    "surface-container": "#240e3b",
+                    "on-primary-fixed-variant": "#370086",
+                    "surface": "#170529",
+                    "surface-container-high": "#2b1344",
+                    "on-background": "#f2dfff",
+                    "secondary-fixed-dim": "#dab4ff",
+                    "error-container": "#a70138",
+                    "inverse-on-surface": "#614d75",
+                    "background": "#170529",
+                    "surface-container-lowest": "#000000",
+                    "on-tertiary-container": "#59002a",
+                    "tertiary-fixed": "#ff8eb0",
+                    "error": "#ff6e84",
+                    "on-surface": "#f2dfff",
+                    "primary-dim": "#8553f3"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {},
+            "fontFamily": {
+                    "headline": [
+                            "Space Grotesk"
+                    ],
+                    "display": [
+                            "Space Grotesk"
+                    ],
+                    "body": [
+                            "Inter"
+                    ],
+                    "label": [
+                            "Public Sans"
+                    ]
+            },
+            "fontSize": {}
+    },
+        },
+      }
+    </script>
+<style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(29, 8, 50, 0.5); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(130, 109, 151, 0.3); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(130, 109, 151, 0.5); 
+        }
+        
+        /* Glassmorphism utility classes to supplement Tailwind */
+        .glass-panel {
+            background: rgba(43, 19, 68, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(130, 109, 151, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .glass-panel-active {
+            background: rgba(94, 44, 145, 0.3);
+            border: 1px solid rgba(186, 158, 255, 0.3);
+            box-shadow: 0 0 20px rgba(186, 158, 255, 0.15);
+        }
+
+        .neon-text-glow {
+            text-shadow: 0 0 10px rgba(186, 158, 255, 0.5), 0 0 20px rgba(186, 158, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body h-screen overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">
+<!-- Decorative Background Elements -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+<div class="absolute top-[-10%] right-[-5%] w-96 h-96 bg-primary opacity-20 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[30rem] h-[30rem] bg-tertiary opacity-10 rounded-full blur-[150px]"></div>
+</div>
+<!-- SIDE NAVIGATION -->
+<nav class="h-screen w-72 left-0 top-0 sticky bg-surface-dim/90 backdrop-blur-2xl shadow-xl shadow-black/80 flex flex-col h-full border-r border-outline-variant/10 z-20 flex-shrink-0 hidden md:flex">
+<!-- Header -->
+<div class="px-6 py-8 border-b border-outline-variant/10">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-tertiary flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-on-primary font-bold">query_stats</span>
+</div>
+<div class="text-lg font-headline font-black text-on-surface tracking-tight">Command Center</div>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container/50 border border-outline-variant/20 w-fit">
+<div class="w-2 h-2 rounded-full bg-tertiary animate-pulse shadow-[0_0_8px_rgba(255,151,181,0.8)]"></div>
+<span class="text-xs font-medium text-tertiary">System Status: Active</span>
+</div>
+</div>
+<!-- Main Tabs -->
+<div class="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
+<!-- Active Tab -->
+<a class="flex items-center gap-3 bg-gradient-to-r from-secondary-container/30 to-transparent text-secondary-fixed-dim border-l-4 border-secondary rounded-r-xl py-3 px-4 transition-all group" href="#">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-body text-label-lg font-semibold">Intelligence Dashboard</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface py-3 px-4 hover:bg-white/5 transition-all duration-300 rounded-lg hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">search_insights</span>
+<span class="font-body text-label-lg">SEM Audits</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface py-3 px-4 hover:bg-white/5 transition-all duration-300 rounded-lg hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">image_search</span>
+<span class="font-body text-label-lg">Image Analysis</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface py-3 px-4 hover:bg-white/5 transition-all duration-300 rounded-lg hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">smart_display</span>
+<span class="font-body text-label-lg">Video Intelligence</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface py-3 px-4 hover:bg-white/5 transition-all duration-300 rounded-lg hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-body text-label-lg">Competitor Bench</span>
+</a>
+</div>
+<!-- CTA -->
+<div class="px-6 py-4">
+<button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-primary-dim to-secondary-dim text-inverse-surface font-semibold text-sm shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Intelligence Audit
+            </button>
+</div>
+<!-- Footer -->
+<div class="p-4 border-t border-outline-variant/10 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface py-2 px-4 hover:bg-white/5 transition-all duration-300 rounded-lg text-sm" href="#">
+<span class="material-symbols-outlined text-sm">description</span>
+<span>Documentation</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface py-2 px-4 hover:bg-white/5 transition-all duration-300 rounded-lg text-sm" href="#">
+<span class="material-symbols-outlined text-sm">logout</span>
+<span>Log Out</span>
+</a>
+</div>
+</nav>
+<!-- MAIN WRAPPER -->
+<div class="flex-1 flex flex-col min-w-0 z-10">
+<!-- TOP APP BAR -->
+<header class="w-full top-0 sticky bg-surface/80 backdrop-blur-xl shadow-md shadow-surface-container-lowest/50 flex justify-between items-center px-6 py-3 w-full border-b border-outline-variant/20 z-30">
+<!-- Brand / Mobile Menu -->
+<div class="flex items-center gap-4 md:hidden">
+<button class="text-on-surface-variant p-2 rounded-lg hover:bg-surface-variant/40 transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="text-xl font-headline font-bold bg-gradient-to-r from-primary to-tertiary bg-clip-text text-transparent">AD-INTEL</div>
+</div>
+<!-- Empty div for spacing on desktop -->
+<div class="hidden md:block text-xl font-headline font-bold bg-gradient-to-r from-primary to-tertiary bg-clip-text text-transparent">AD-INTEL</div>
+<!-- Right Actions -->
+<div class="flex items-center gap-4">
+<!-- Search -->
+<div class="hidden lg:flex items-center relative mr-2">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-sm">search</span>
+<input class="bg-surface-container border border-outline-variant/30 rounded-full py-1.5 pl-9 pr-4 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 w-64 transition-all" placeholder="Search audits, metrics..." type="text"/>
+</div>
+<!-- Icons -->
+<div class="flex items-center gap-1">
+<button class="p-2 rounded-full text-on-surface-variant hover:bg-surface-variant/40 transition-colors duration-200 active:scale-95 relative group">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-tertiary"></span>
+</button>
+<button class="p-2 rounded-full text-on-surface-variant hover:bg-surface-variant/40 transition-colors duration-200 active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 rounded-full text-on-surface-variant hover:bg-surface-variant/40 transition-colors duration-200 active:scale-95">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+<!-- Profile -->
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30 cursor-pointer hover:border-primary transition-colors">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A futuristic, highly detailed headshot of an AI system avatar or tech professional, illuminated by soft violet and neon pink rim lighting against a dark void, professional and sleek aesthetic, highly realistic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6S9vrlB1kMiL85yLDFesFIPRDkBrueUDbI9Sd40gnmAcQ2YuNSOrLs9Hce3QZpjbyJC86-PORLHLZjuc1zB3kbUZ0TlUAB0-d7toWqUcVOt3cCO4ymhkNyg3ShWJuORXo9XUFqP1PMBRyJt0Hn1cg3Xy-zlwUlTEIG98sPhKOo7-EXA52YRVTDtaYj-ZsVA4yrdnR3ybxnllXRPoFLzgogJXvN6BiMXHSpTy0XHrfYxhkto3nHZnpLj1seFHcvPgWfGtNxVRaGt8"/>
+</div>
+</div>
+</header>
+<!-- MAIN CONTENT -->
+<main class="flex-1 overflow-y-auto p-6 lg:p-8">
+<div class="max-w-7xl mx-auto space-y-8">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-3xl font-headline font-bold text-on-surface neon-text-glow tracking-tight">Intelligence Dashboard</h1>
+<p class="text-on-surface-variant mt-1">Real-time performance metrics and active AI analysis.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 rounded-lg glass-panel text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all text-sm font-medium flex items-center gap-2 border border-outline-variant/30">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+                            Last 30 Days
+                        </button>
+<button class="px-4 py-2 rounded-lg bg-surface-container border border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all text-sm font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">download</span>
+                            Export
+                        </button>
+</div>
+</div>
+<!-- KPI Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- KPI 1 -->
+<div class="glass-panel rounded-2xl p-6 relative overflow-hidden group hover:border-primary/30 transition-colors duration-300">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary">payments</span>
+</div>
+<h3 class="text-sm font-medium text-on-surface-variant mb-1">Total Ad Spend</h3>
+<div class="flex items-baseline gap-3 mb-4">
+<span class="text-3xl font-headline font-bold text-on-surface">$142,850</span>
+<span class="text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5">trending_up</span>
+                                +12.4%
+                            </span>
+</div>
+<!-- Sparkline placeholder -->
+<div class="h-12 w-full mt-2 relative">
+<svg class="w-full h-full preserve-3d" preserveaspectratio="none" viewbox="0 0 100 30">
+<path class="text-primary" d="M0,25 Q10,15 20,20 T40,10 T60,15 T80,5 T100,2" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+<path class="opacity-20" d="M0,25 Q10,15 20,20 T40,10 T60,15 T80,5 T100,2 L100,30 L0,30 Z" fill="url(#grad1)"></path>
+<defs>
+<lineargradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#ba9eff" stop-opacity="1"></stop>
+<stop offset="100%" stop-color="#ba9eff" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="glass-panel rounded-2xl p-6 relative overflow-hidden group hover:border-tertiary/30 transition-colors duration-300">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-tertiary">rocket_launch</span>
+</div>
+<h3 class="text-sm font-medium text-on-surface-variant mb-1">Blended ROAS</h3>
+<div class="flex items-baseline gap-3 mb-4">
+<span class="text-3xl font-headline font-bold text-on-surface">3.8x</span>
+<span class="text-xs font-semibold px-2 py-0.5 rounded bg-tertiary/10 text-tertiary flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5">trending_up</span>
+                                +4.2%
+                            </span>
+</div>
+<div class="h-12 w-full mt-2 relative">
+<svg class="w-full h-full preserve-3d" preserveaspectratio="none" viewbox="0 0 100 30">
+<path class="text-tertiary" d="M0,20 Q15,25 30,15 T60,20 T80,10 T100,5" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+<path class="opacity-20" d="M0,20 Q15,25 30,15 T60,20 T80,10 T100,5 L100,30 L0,30 Z" fill="url(#grad2)"></path>
+<defs>
+<lineargradient id="grad2" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#ff97b5" stop-opacity="1"></stop>
+<stop offset="100%" stop-color="#ff97b5" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="glass-panel rounded-2xl p-6 relative overflow-hidden group hover:border-outline/50 transition-colors duration-300">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-on-surface">conversion_path</span>
+</div>
+<h3 class="text-sm font-medium text-on-surface-variant mb-1">Total Conversions</h3>
+<div class="flex items-baseline gap-3 mb-4">
+<span class="text-3xl font-headline font-bold text-on-surface">12,408</span>
+<span class="text-xs font-semibold px-2 py-0.5 rounded bg-error/10 text-error flex items-center">
+<span class="material-symbols-outlined text-[10px] mr-0.5">trending_down</span>
+                                -2.1%
+                            </span>
+</div>
+<div class="h-12 w-full mt-2 relative">
+<svg class="w-full h-full preserve-3d" preserveaspectratio="none" viewbox="0 0 100 30">
+<path class="text-outline" d="M0,5 Q20,10 40,5 T70,15 T100,20" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+<path class="opacity-20" d="M0,5 Q20,10 40,5 T70,15 T100,20 L100,30 L0,30 Z" fill="url(#grad3)"></path>
+<defs>
+<lineargradient id="grad3" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#826d97" stop-opacity="1"></stop>
+<stop offset="100%" stop-color="#826d97" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Main Content Left (Active Audits) -->
+<div class="lg:col-span-2 space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="text-xl font-headline font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">radar</span>
+                                Active Intelligence
+                            </h2>
+<button class="text-sm text-primary hover:text-primary-dim transition-colors font-medium">View All</button>
+</div>
+<div class="space-y-4">
+<!-- Audit Item 1 -->
+<div class="glass-panel rounded-xl p-5 border-l-4 border-l-primary hover:bg-surface-variant/30 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">google_plus_reshare</span> <!-- Using generic icon as placeholder for Google -->
+</div>
+<div>
+<h4 class="font-semibold text-on-surface">Q3 Brand Awareness</h4>
+<p class="text-xs text-on-surface-variant">Google Ads • SEM Audit</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center gap-1.5 border border-primary/20">
+<div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+                                        Running
+                                    </span>
+</div>
+<div class="mt-4">
+<div class="flex justify-between text-xs mb-1.5">
+<span class="text-on-surface-variant">Optimization Score</span>
+<span class="font-medium text-primary">85/100</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+<div class="bg-gradient-to-r from-primary to-primary-dim h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+</div>
+<!-- Audit Item 2 -->
+<div class="glass-panel rounded-xl p-5 border-l-4 border-l-tertiary hover:bg-surface-variant/30 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">image</span>
+</div>
+<div>
+<h4 class="font-semibold text-on-surface">Holiday Promo Creatives</h4>
+<p class="text-xs text-on-surface-variant">Meta Ads • Image Analysis</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-error-dim/10 text-tertiary text-xs font-semibold flex items-center gap-1.5 border border-error-dim/20">
+<span class="material-symbols-outlined text-[12px]">warning</span>
+                                        Needs Action
+                                    </span>
+</div>
+<div class="mt-4">
+<div class="flex justify-between text-xs mb-1.5">
+<span class="text-on-surface-variant">Optimization Score</span>
+<span class="font-medium text-tertiary">62/100</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+<div class="bg-gradient-to-r from-tertiary to-error-dim h-1.5 rounded-full" style="width: 62%"></div>
+</div>
+</div>
+</div>
+<!-- Audit Item 3 -->
+<div class="glass-panel rounded-xl p-5 border-l-4 border-l-outline hover:bg-surface-variant/30 transition-all cursor-pointer opacity-70">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-variant flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h4 class="font-semibold text-on-surface">Competitor Keyword Overlap</h4>
+<p class="text-xs text-on-surface-variant">Global Market • Competitor Bench</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-surface-variant text-outline text-xs font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[12px]">check_circle</span>
+                                        Completed
+                                    </span>
+</div>
+<div class="mt-4">
+<div class="flex justify-between text-xs mb-1.5">
+<span class="text-on-surface-variant">Optimization Score</span>
+<span class="font-medium text-outline">94/100</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+<div class="bg-outline h-1.5 rounded-full" style="width: 94%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Content Right (Quick Actions) -->
+<div class="space-y-6">
+<h2 class="text-xl font-headline font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">bolt</span>
+                            Quick Actions
+                        </h2>
+<div class="grid grid-cols-1 gap-4">
+<!-- Action 1 -->
+<button class="glass-panel p-5 rounded-xl text-left hover:glass-panel-active transition-all group relative overflow-hidden flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shrink-0">
+<span class="material-symbols-outlined text-primary text-xl">troubleshoot</span>
+</div>
+<div>
+<h4 class="font-semibold text-on-surface group-hover:text-primary transition-colors">New SEM Audit</h4>
+<p class="text-xs text-on-surface-variant mt-0.5">Deep scan search campaigns</p>
+</div>
+<span class="material-symbols-outlined absolute right-4 text-outline-variant group-hover:text-primary opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all">chevron_right</span>
+</button>
+<!-- Action 2 -->
+<button class="glass-panel p-5 rounded-xl text-left hover:glass-panel-active transition-all group relative overflow-hidden flex items-center gap-4 border border-outline-variant/20 hover:border-tertiary/40">
+<div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center group-hover:bg-tertiary/20 transition-colors shrink-0">
+<span class="material-symbols-outlined text-tertiary text-xl">image_search</span>
+</div>
+<div>
+<h4 class="font-semibold text-on-surface group-hover:text-tertiary transition-colors">New Image Audit</h4>
+<p class="text-xs text-on-surface-variant mt-0.5">Analyze creative performance</p>
+</div>
+<span class="material-symbols-outlined absolute right-4 text-outline-variant group-hover:text-tertiary opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all">chevron_right</span>
+</button>
+<!-- Action 3 -->
+<button class="glass-panel p-5 rounded-xl text-left hover:glass-panel-active transition-all group relative overflow-hidden flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container/30 flex items-center justify-center group-hover:bg-secondary-container/50 transition-colors shrink-0">
+<span class="material-symbols-outlined text-secondary text-xl">query_stats</span>
+</div>
+<div>
+<h4 class="font-semibold text-on-surface group-hover:text-secondary transition-colors">Competitor Analysis</h4>
+<p class="text-xs text-on-surface-variant mt-0.5">Benchmarking &amp; insights</p>
+</div>
+<span class="material-symbols-outlined absolute right-4 text-outline-variant group-hover:text-secondary opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all">chevron_right</span>
+</button>
+</div>
+<!-- System health mini-card -->
+<div class="mt-8 p-4 rounded-xl bg-surface-container/30 border border-outline-variant/10">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">memory</span>
+<span class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Engine Status</span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<div class="text-xl font-headline font-bold text-on-surface">Optimal</div>
+<div class="text-xs text-primary mt-1">99.9% Uptime</div>
+</div>
+<!-- Micro shader placeholder -->
+<div class="w-16 h-16 rounded-lg overflow-hidden border border-outline-variant/20 relative">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-tertiary/20"></div>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

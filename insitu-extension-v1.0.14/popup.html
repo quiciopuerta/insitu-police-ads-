@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>insitu.company Command Center</title>
+  <style>
+    :root {
+      --color-primary: #E5007D;
+      --color-primary-hover: #C2006A;
+      --color-slate-50: #f8fafc;
+      --color-slate-100: #f1f5f9;
+      --color-slate-200: #e2e8f0;
+      --color-slate-700: #334155;
+      --color-slate-800: #1e293b;
+      --color-slate-900: #0f172a;
+      --color-indigo: #4f46e5;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-family);
+      width: 480px; /* Made slightly wider to accommodate tabs */
+      min-height: 550px;
+      background-color: var(--color-slate-50);
+      color: var(--color-slate-900);
+      font-size: 14px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, var(--color-slate-900) 0%, #050b14 100%);
+      color: white;
+      padding: 16px 16px 0 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-logo {
+      width: 28px; height: 28px;
+      background-color: transparent;
+      border: 2px solid var(--color-indigo);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-indigo);
+      font-weight: 800; font-size: 16px;
+    }
+    .brand-title { font-weight: 700; font-size: 18px; letter-spacing: -0.5px; }
+    .brand-title span { color: var(--color-indigo); font-weight: 400; opacity: 0.9; }
+
+    .badge-extension {
+      background-color: rgba(79, 70, 229, 0.15);
+      border: 1px solid var(--color-indigo);
+      color: #818cf8;
+      font-size: 10px; font-weight: 700; padding: 2px 6px;
+      border-radius: 4px; text-transform: uppercase;
+    }
+
+    /* TABS NAV */
+    .tabs-nav {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none; /* Firefox */
+    }
+    .tabs-nav::-webkit-scrollbar { display: none; } /* Safari and Chrome */
+    
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94a3b8;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    
+    .tab-btn:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .tab-btn.active {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .tab-btn.external::after {
+      content: '↗';
+      font-size: 10px;
+      opacity: 0.6;
+    }
+
+    /* MAIN CONTENT */
+    main {
+      padding: 16px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* GENERAL UI ELEMENTS */
+    .section-title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--color-slate-700);
+      margin-bottom: 12px; border-left: 3px solid var(--color-indigo); padding-left: 8px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    
+    label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--color-slate-700); margin-bottom: 4px; text-transform: uppercase;
+    }
+    select, input {
+      width: 100%; padding: 8px 10px; background-color: white;
+      border: 1px solid var(--color-slate-200); border-radius: 6px;
+      font-size: 13px; color: var(--color-slate-900); outline: none; transition: all 0.2s ease;
+    }
+    select:focus, input:focus {
+      border-color: var(--color-indigo); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+    
+    .result-container {
+      background-color: white; border: 1px solid var(--color-slate-200);
+      border-radius: 8px; padding: 12px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    
+    .output-field { position: relative; margin-top: 6px; margin-bottom: 12px; }
+    .output-box {
+      width: 100%; background-color: var(--color-slate-100); border: 1px dashed var(--color-slate-200);
+      color: var(--color-slate-900); font-family: monospace; font-size: 12px;
+      padding: 10px; border-radius: 6px; padding-right: 48px; word-break: break-all;
+      min-height: 48px; display: flex; align-items: center;
+    }
+    
+    .btn-copy {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      background-color: white; border: 1px solid var(--color-slate-200); border-radius: 4px;
+      width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--color-slate-700); transition: all 0.15s ease;
+    }
+    .btn-copy:hover { background-color: var(--color-slate-50); border-color: var(--color-indigo); color: var(--color-indigo); }
+    .copy-success-tooltip {
+      position: absolute; bottom: -22px; right: 6px; background-color: var(--color-slate-800);
+      color: white; font-size: 10px; padding: 2px 6px; border-radius: 3px; opacity: 0; transition: opacity 0.2s ease; pointer-events: none;
+    }
+    .copy-success-tooltip.show { opacity: 1; }
+
+    .divider { height: 1px; background-color: var(--color-slate-200); margin: 16px 0; }
+    
+    .btn-primary {
+      background-color: var(--color-indigo); color: white; border: none; border-radius: 6px;
+      padding: 10px 16px; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%;
+      transition: background-color 0.2s ease; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .btn-primary:hover { background-color: #4338ca; }
+    
+    .btn-secondary {
+      background-color: transparent; border: 1px solid var(--color-slate-200); color: var(--color-slate-700);
+      border-radius: 6px; padding: 8px 12px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-secondary:hover { background-color: var(--color-slate-100); color: var(--color-slate-900); }
+
+    .flex-between { display: flex; align-items: center; justify-content: space-between; }
+    
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 12px; }
+    .status-badge.ok { background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .status-badge.error { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+    /* HISTORY LIST */
+    .history-list { display: flex; flex-direction: column; gap: 8px; }
+    .history-item { 
+      background: white; border: 1px solid var(--color-slate-200); border-radius: 8px; padding: 12px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .history-item-header { display: flex; justify-content: space-between; align-items: center; }
+    .history-platform { font-size: 11px; font-weight: 700; color: var(--color-slate-500); text-transform: uppercase; }
+    .history-time { font-size: 10px; color: var(--color-slate-400); }
+    .history-name { font-family: monospace; font-size: 12px; color: var(--color-slate-900); word-break: break-all; background: var(--color-slate-50); padding: 4px 8px; border-radius: 4px; border: 1px dashed var(--color-slate-200); }
+    .history-errors { font-size: 11px; color: #ef4444; margin-top: 4px; }
+    .empty-state { text-align: center; padding: 24px 16px; color: var(--color-slate-500); font-size: 13px; }
+
+    /* POLICIES LIST */
+    .policy-group { margin-bottom: 16px; background: white; border: 1px solid var(--color-slate-200); border-radius: 8px; overflow: hidden; }
+    .policy-group-title { background: var(--color-slate-50); padding: 8px 12px; font-size: 12px; font-weight: 700; color: var(--color-slate-700); border-bottom: 1px solid var(--color-slate-200); }
+    .policy-rules { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .policy-rule { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--color-slate-700); }
+    .policy-rule span { background: var(--color-indigo); color: white; border-radius: 12px; padding: 2px 6px; font-size: 10px; font-weight: 700; }
+
+    /* FOOTER */
+    .footer { text-align: center; font-size: 10.5px; color: var(--color-slate-700); padding: 12px; border-top: 1px solid var(--color-slate-200); background: var(--color-slate-50); }
+    .footer a { color: var(--color-indigo); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <div class="brand">
+        <svg class="brand-logo" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        <div class="brand-title">Police Ads <span>Command Center</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span id="version-label" style="font-size: 11px; color: #94a3b8;">v1.0.14</span>
+        <div class="badge-extension">EXT</div>
+      </div>
+    </div>
+    
+    <nav class="tabs-nav" id="main-tabs">
+      <button class="tab-btn active" data-target="tab-dashboard">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Dashboard
+      </button>
+      <button class="tab-btn" data-target="tab-historial">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Campañas
+      </button>
+      <button class="tab-btn" data-target="tab-politicas">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        Políticas
+      </button>
+      <!-- External Links -->
+      <button class="tab-btn external" id="btn-link-clientes">Clientes</button>
+      <button class="tab-btn external" id="btn-link-cuentas">Cuentas</button>
+      <button class="tab-btn external" id="btn-link-alertas">Alertas</button>
+    </nav>
+  </header>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen" style="display: none; padding: 24px 16px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Acceso Restringido</h2>
+    <p style="font-size: 12px; color: var(--color-slate-700); margin-bottom: 20px;">Requiere autenticación en insitu.company</p>
+
+    <div style="width: 100%; margin-bottom: 16px;">
+      <input type="email" id="auth-email" placeholder="tu@email.com">
+    </div>
+    <div style="width: 100%; margin-bottom: 16px;">
+      <input type="password" id="auth-password" placeholder="Tu contraseña">
+    </div>
+
+    <button id="btn-login" class="btn-primary" style="margin-bottom: 12px; background: var(--color-indigo);">Acceder</button>
+    <p id="auth-error" style="font-size: 11px; color: #ef4444; display: none; margin-top: 12px;"></p>
+    <div id="auth-loading" style="display: none; text-align: center;"><p style="font-size: 11px;">Verificando...</p></div>
+  </div>
+
+  <main id="main-app" style="display: none;">
+    <!-- TAB: DASHBOARD (Generador de Gobernanza) -->
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="section-title">Generador de Nomenclatura</div>
+      
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 12px;">
+        <div class="form-group">
+          <label>CLIENTE</label>
+          <select id="client-select"><option value="">Selecciona Cliente</option></select>
+        </div>
+        <div class="form-group">
+          <label>MARCA</label>
+          <input type="text" id="brand-input" placeholder="Marca">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>PAÍS</label>
+          <select id="country"><option value="EC">EC</option><option value="CO">CO</option><option value="PE">PE</option></select>
+        </div>
+        <div class="form-group">
+          <label>CANAL</label>
+          <select id="channel">
+            <option value="FB">FB (Meta)</option>
+            <option value="GO">GO (Google)</option>
+            <option value="TK">TK (TikTok)</option>
+            <option value="LI">LI (LinkedIn)</option>
+            <option value="PI">PI (Pinterest)</option>
+            <option value="XAds">XAds (X/Twitter)</option>
+            <option value="DV360">DV360 (DV360)</option>
+            <option value="SC">SC (Snapchat)</option>
+            <option value="AMZ">AMZ (Amazon)</option>
+            <option value="MS">MS (Microsoft)</option>
+            <option value="YHO">YHO (Yahoo)</option>
+            <option value="CRT">CRT (Criteo)</option>
+            <option value="OB">OB (Outbrain)</option>
+            <option value="TB">TB (Taboola)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>OBJETIVO</label>
+          <select id="objective">
+            <option value="CONV">CONV (Conversión)</option>
+            <option value="LEAD">LEAD (Potenciales)</option>
+            <option value="TRAF">TRAF (Tráfico)</option>
+            <option value="AW">AW (Awareness)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>PRODUCTO / CAMPAÑA</label>
+        <input type="text" id="product" value="Promo-2026">
+      </div>
+      <div class="form-group">
+        <label>AÑO / TEMPORADA</label>
+        <input type="text" id="season" value="2026">
+      </div>
+
+      <div class="form-group">
+        <label>PRESUPUESTO TOTAL DE CAMPAÑA</label>
+        <input type="number" id="campaign-budget" placeholder="Ingresa un importe" value="100">
+        <div id="budget-alert" style="display: none; color: #ef4444; font-size: 11px; font-weight: bold; margin-top: 4px;">⚠ PRESUPUESTO EXCESIVO: Supera el límite safe configurado.</div>
+      </div>
+
+      <div class="result-container">
+        <div class="flex-between" style="margin-bottom: 4px;">
+          <label style="margin: 0;">Nomenclatura Valida</label>
+          <div id="validation-status" class="status-badge ok">✓ OK</div>
+        </div>
+        <div id="validation-reason" style="display: none; color: #ef4444; font-size: 11px; margin-bottom: 8px;"></div>
+        
+        <div class="output-field">
+          <div id="campaign-output" class="output-box">EC_FB_CONV_Promo-2026_2026</div>
+          <button id="btn-copy-campaign" class="btn-copy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+          <div id="tooltip-campaign" class="copy-success-tooltip">Copiado</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 4px;">
+          <label>URL Base</label>
+          <input type="text" id="base-url" value="insitu.company/landing">
+        </div>
+
+        <label style="margin-top: 8px;">URL con UTMs</label>
+        <div class="output-field">
+          <div id="url-output" class="output-box" style="font-size: 11px; min-height: 40px;">insitu.company/landing?...</div>
+          <button id="btn-copy-url" class="btn-copy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+          <div id="tooltip-url" class="copy-success-tooltip">Copiado</div>
+        </div>
+      </div>
+
+      <div style="background-color: white; border: 1px solid var(--color-slate-200); border-radius: 8px; padding: 12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div class="section-title" style="margin: 0; border-color: #10b981;">Límite Presupuesto Safe</div>
+          <div style="font-weight: bold; color: #10b981; font-size:12px;" id="indicator-badge">$500 USD</div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="number" id="input-budget-limit" value="500" style="flex-grow:1;">
+          <button id="btn-save-budget" class="btn-secondary">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: HISTORIAL (Campañas) -->
+    <div id="tab-historial" class="tab-content">
+      <div class="flex-between" style="margin-bottom: 12px;">
+        <div class="section-title" style="margin:0;">Últimas Validaciones</div>
+        <button id="btn-refresh-history" class="btn-secondary" style="padding:4px 8px; font-size:10px;">↻ Refrescar</button>
+      </div>
+      <div id="history-container" class="history-list">
+        <div class="empty-state">Cargando historial...</div>
+      </div>
+    </div>
+
+    <!-- TAB: POLÍTICAS -->
+    <div id="tab-politicas" class="tab-content">
+      <div class="section-title">Políticas Activas</div>
+      <p style="font-size: 11px; color: var(--color-slate-700); margin-bottom: 12px;">
+        Estas son las reglas de nomenclatura configuradas para tu organización.
+      </p>
+      <div id="policies-container">
+        <div class="empty-state">No hay políticas cargadas. Inicia sesión para sincronizar.</div>
+      </div>
+    </div>
+  </main>
+
+  <div class="footer">
+    <button id="btn-keep-open" class="btn-secondary" style="font-size:10px; padding:4px 8px; float:left; margin-top:-4px;">Mantener Pop-up Abierto</button>
+    Police Ads &copy; <a href="https://insitu.company" target="_blank">insitu.company</a>
+  </div>
+
+  <script src="validator.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

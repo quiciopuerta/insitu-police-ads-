@@ -1,0 +1,526 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["netlify/functions/_lib/vertex-creds.enc"]
+
+[functions."api-analyze-traffic"]
+  timeout = 26
+
+[functions."api-media-generation"]
+  timeout = 26
+
+[functions."api-media-analysis"]
+  timeout = 26
+
+[functions."api-generate-ads-script"]
+  timeout = 26
+
+# DB Maintenance: runs daily at 03:00 UTC
+[functions."api-db-maintenance"]
+  schedule = "0 3 * * *"
+
+# Security: Allow Gemini API key in client bundle (VITE_* vars are intentionally public)
+[build.processing]
+  skip_processing = false
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Cache-Control = "public, max-age=0, must-revalidate"
+    # Cross-Origin Isolation (Required for Whisper Web / SharedArrayBuffer)
+    # same-origin-allow-popups: Keeps Google Login popups working
+    # credentialless: Modern COEP that doesn't require explicit CORP for cross-origin resources
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+    Cross-Origin-Embedder-Policy = "credentialless"
+    # Content Security Policy (CSP)
+    # ────────────────────────────────────────────────────────────────────────
+    # unsafe-eval: removed — Vite production bundles do not require it.
+    # unsafe-inline: kept for JSON-LD and analytics pixels.
+    # wasm-unsafe-eval: required for FFmpeg.wasm (video processing).
+    # blob:: required for web workers and FFmpeg.wasm.
+    Content-Security-Policy = "default-src 'self'; base-uri 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: 'inline-speculation-rules' https://accounts.google.com https://www.google.com https://google.com https://www.gstatic.com https://generativelanguage.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://googleadservices.com https://www.googletagservices.com https://googleads.g.doubleclick.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com https://*.googleusercontent.com https://*.googleapis.com https://insitu.company https://ui-avatars.com https://www.transparenttextures.com https://storage.googleapis.com https://cdn.pixabay.com https://pixabay.com https://*.franklinsanchez.com https://franklinsanchez.com https://www.google-analytics.com https://www.googletagmanager.com https://*.google.com https://google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://googleadservices.com https://www.googletagservices.com; media-src 'self' data: blob: https://storage.googleapis.com https://cdn.pixabay.com https://pixabay.com; connect-src 'self' data: blob: https://images.unsplash.com https://*.googleapis.com https://insitu.company https://*.netlify.app https://*.supabase.co https://ingesteer.services-prod.nsvcs.net https://*.google.com https://google.com https://google.com.ec https://fonts.gstatic.com https://cdn.pixabay.com https://pixabay.com https://*.franklinsanchez.com https://franklinsanchez.com https://www.google-analytics.com https://stats.g.doubleclick.net https://www.googleadservices.com https://googleadservices.com https://www.googletagservices.com https://googleads.g.doubleclick.net; frame-src 'self' https://accounts.google.com https://www.google.com https://www.gstatic.com;"
+    Permissions-Policy = "camera=(), microphone=(self), geolocation=(), payment=(self)"
+
+[[headers]]
+  for = "/extension*.html"
+  [headers.values]
+    X-Frame-Options = "ALLOWALL"
+    Access-Control-Allow-Origin = "*"
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline'; frame-ancestors *;"
+
+[[headers]]
+  for = "/cws-*"
+  [headers.values]
+    X-Frame-Options = "ALLOWALL"
+    Access-Control-Allow-Origin = "*"
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline'; frame-ancestors *;"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/blog-images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/favicon.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/pwa-*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# Admin settings — Netlify Function → Supabase DB (global, todos los usuarios)
+[[redirects]]
+  from = "/api/admin/settings"
+  to = "/.netlify/functions/api-admin-settings"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/scanner-stats"
+  to = "/.netlify/functions/api-admin-scanner-stats"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/users"
+  to = "/.netlify/functions/api-admin-users"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/users/*"
+  to = "/.netlify/functions/api-admin-users/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/notify/*"
+  to = "/.netlify/functions/api-admin-notify/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin-notify/*"
+  to = "/.netlify/functions/api-admin-notify/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/history"
+  to = "/.netlify/functions/api-history"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/history/*"
+  to = "/.netlify/functions/api-history/:splat"
+  status = 200
+  force = true
+# Blog management — Netlify Function → Supabase DB
+[[redirects]]
+  from = "/api/admin/blog"
+  to = "/.netlify/functions/api-admin-blog"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/blog/*"
+  to = "/.netlify/functions/api-admin-blog/:splat"
+  status = 200
+  force = true
+
+# Police Ads API
+[[redirects]]
+  from = "/api-police-organizations"
+  to = "/.netlify/functions/api-police-organizations"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-policies"
+  to = "/.netlify/functions/api-police-policies"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-extension-compliance"
+  to = "/.netlify/functions/api-extension-compliance"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-alerts"
+  to = "/.netlify/functions/api-police-alerts"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-campaigns"
+  to = "/.netlify/functions/api-police-campaigns"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-clients"
+  to = "/.netlify/functions/api-police-clients"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-clients-create"
+  to = "/.netlify/functions/api-police-clients"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-accounts"
+  to = "/.netlify/functions/api-police-accounts"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-accounts-create"
+  to = "/.netlify/functions/api-police-accounts"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-accounts/*"
+  to = "/.netlify/functions/api-police-accounts/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-users"
+  to = "/.netlify/functions/api-police-users"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-users/*"
+  to = "/.netlify/functions/api-police-users/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-police-extension-activities"
+  to = "/.netlify/functions/api-police-extension-activities"
+  status = 200
+  force = true
+
+
+# DB Health & Maintenance
+[[redirects]]
+  from = "/api/db/health"
+  to = "/.netlify/functions/api-db-maintenance"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/db/maintenance"
+  to = "/.netlify/functions/api-db-maintenance"
+  status = 200
+  force = true
+
+# Auth endpoints — Netlify Function
+[[redirects]]
+  from = "/api/auth/*"
+  to = "/.netlify/functions/api-auth/:splat"
+  status = 200
+  force = true
+
+# Extension auth — Netlify Function
+[[redirects]]
+  from = "/api/extension-auth"
+  to = "/.netlify/functions/api-extension-auth"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/validate-token"
+  to = "/.netlify/functions/api-validate-token"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/extension-session"
+  to = "/.netlify/functions/api-extension-session"
+  status = 200
+  force = true
+
+# External Blog Proxy
+[[redirects]]
+  from = "/api/blog-external"
+  to = "/.netlify/functions/blog-external"
+  status = 200
+  force = true
+
+# Leads — Netlify Function
+[[redirects]]
+  from = "/api/leads"
+  to = "/.netlify/functions/api-leads"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/media-generation"
+  to = "/.netlify/functions/api-media-generation"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/ai-proxy"
+  to = "/.netlify/functions/api-ai-proxy"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/portavoz"
+  to = "/.netlify/functions/api-portavoz"
+  status = 200
+  force = true
+
+# GCS Video Proxy — resolves CORS for Veo 2.0 videos stored in private GCS buckets
+# Streams storage.googleapis.com signed URLs through Netlify with CORS headers
+[[redirects]]
+  from = "/api/gcs-proxy"
+  to = "/.netlify/functions/api-gcs-proxy"
+  status = 200
+  force = true
+
+# Traffic & SEO Analysis — Netlify Function (real data pipeline)
+[[redirects]]
+  from = "/api/analyze/traffic"
+  to = "/.netlify/functions/api-analyze-traffic"
+  status = 200
+  force = true
+
+# Traffic Intel — Lightweight real traffic data (SimilarWeb/SemRush via Tavily+Serper)
+[[redirects]]
+  from = "/api/traffic-intel"
+  to = "/.netlify/functions/api-traffic-intel"
+  status = 200
+  force = true
+
+# Google Ads + Google Search Console proxy — Netlify Function
+[[redirects]]
+  from = "/api/google-ads"
+  to = "/.netlify/functions/api-google-ads"
+  status = 200
+  force = true
+
+# Media Analysis — Netlify Function
+[[redirects]]
+  from = "/api/media-analysis"
+  to = "/.netlify/functions/api-media-analysis"
+  status = 200
+  force = true
+
+# Google Ads Script Generation — Netlify Function
+[[redirects]]
+  from = "/api/generate-ads-script"
+  to = "/.netlify/functions/api-generate-ads-script"
+  status = 200
+  force = true
+
+
+# Competitor Tracker — Netlify Functions
+[[redirects]]
+  from = "/api/competitor-tracker/*"
+  to = "/.netlify/functions/api-competitor-tracker/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/competitor-tracker"
+  to = "/.netlify/functions/api-competitor-tracker"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/competitor-scan"
+  to = "/.netlify/functions/competitor-scan"
+  status = 200
+  force = true
+
+# AI Feedback & Learning — Netlify Functions
+[[redirects]]
+  from = "/api/feedback"
+  to = "/.netlify/functions/api-feedback"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/prompt-rules"
+  to = "/.netlify/functions/api-prompt-rules"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/market-pulse"
+  to = "/.netlify/functions/api-market-pulse"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/performance-feedback"
+  to = "/.netlify/functions/api-performance-feedback"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/pagespeed"
+  to = "/.netlify/functions/api-pagespeed"
+  status = 200
+  force = true
+
+# Telemetry — AI task latency logging
+[[redirects]]
+  from = "/api/telemetry/latency"
+  to = "/.netlify/functions/api-telemetry"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/api-police-campaigns"
+  to = "/.netlify/functions/api-police-campaigns"
+  status = 200
+
+[[redirects]]
+  from = "/api/api-police-alerts"
+  to = "/.netlify/functions/api-police-alerts"
+  status = 200
+
+[[redirects]]
+  from = "/api/api-police-accounts"
+  to = "/.netlify/functions/api-police-accounts"
+  status = 200
+
+[[redirects]]
+  from = "/api/api-police-accounts-create"
+  to = "/.netlify/functions/api-police-accounts"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/api-police-accounts/*"
+  to = "/.netlify/functions/api-police-accounts/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/api-police-clients"
+  to = "/.netlify/functions/api-police-clients"
+  status = 200
+
+[[redirects]]
+  from = "/api/api-police-clients-create"
+  to = "/.netlify/functions/api-police-clients"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/api-police-extension"
+  to = "/.netlify/functions/api-police-extension"
+  status = 200
+
+[[redirects]]
+  from = "/api/api-police-users"
+  to = "/.netlify/functions/api-police-users"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/api-police-users/*"
+  to = "/.netlify/functions/api-police-users/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/api-police-extension-activities"
+  to = "/.netlify/functions/api-police-extension-activities"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/api-police-integrations"
+  to = "/.netlify/functions/api-police-integrations"
+  status = 200
+
+[[redirects]]
+  from = "/api/api-police-organizations"
+  to = "/.netlify/functions/api-police-organizations"
+  status = 200
+
+[[redirects]]
+  from = "/api/api-police-policies"
+  to = "/.netlify/functions/api-police-policies"
+  status = 200
+
+[[redirects]]
+  from = "/api/api-police-extension-activities"
+  to = "/.netlify/functions/api-police-extension-activities"
+  status = 200
+
+
+# ── Edge Functions ──────────────────────────────────────────────
+# SEO pre-renderer: injects route-specific meta tags for bot crawlers
+[[edge_functions]]
+  function = "seo-prerender"
+  path = "/*"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+
+
+# Desktop App Downloads
+[[redirects]]
+  from = "/download/mac"
+  to = "https://github.com/quiciopuerta/INsitu-AI-2/releases/latest/download/INsitu-AI-mac.dmg"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/download/windows"
+  to = "https://github.com/quiciopuerta/INsitu-AI-2/releases/latest/download/INsitu-AI-win.exe"
+  status = 302
+  force = true
+
+# CWS (Chrome Web Store) Cache-Busting URLs
+[[redirects]]
+  from = "/cws-home"
+  to = "/extension.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/cws-support"
+  to = "/extension-support.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/cws-privacy"
+  to = "/extension-privacy.html"
+  status = 200
+  force = true

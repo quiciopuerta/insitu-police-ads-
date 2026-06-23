@@ -1,0 +1,133 @@
+import type { Handler, HandlerEvent } from "@netlify/functions";
+import { runQuery } from "./_lib/db";
+import { safeError } from "./_lib/errorHandler";
+import { runMigrations } from "./_lib/migrations";
+
+const CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Content-Type": "application/json",
+};
+
+const json = (status: number, body: unknown) => ({
+    statusCode: status,
+    headers: CORS,
+    body: JSON.stringify(body),
+});
+
+let migrationsRan = false;
+
+export const handler: Handler = async (event: HandlerEvent) => {
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
+
+    if (!migrationsRan) {
+        await runMigrations().catch(err => console.error("[POLICE-POLICIES] Migrations failed:", err));
+        migrationsRan = true;
+    }
+
+    const authHeader = event.headers['authorization'] || event.headers['Authorization'] || '';
+    const callerUserId = event.headers['x-user-id'] || event.headers['X-User-Id'] || authHeader.replace('Bearer ', '') || '';
+    
+    if (!callerUserId) {
+        return json(401, { error: "Unauthorized: Missing identity" });
+    }
+
+    try {
+        // Resolve extension session token or direct user ID to user.id
+        let userId = callerUserId;
+        const userResult = await runQuery(sql => sql`
+            SELECT id FROM users 
+            WHERE id = ${callerUserId} 
+               OR extension_session_token = ${callerUserId}
+        `);
+        
+        if (userResult && userResult.length > 0) {
+            userId = userResult[0].id;
+        } else {
+            return json(401, { error: "Unauthorized: Invalid user identity or token" });
+        }
+
+        if (event.httpMethod === "GET") {
+            const orgId = event.queryStringParameters?.organization_id;
+            if (!orgId) return json(400, { error: "Missing organization_id" });
+
+            // Ensure user has access to this organization
+            const orgs = await runQuery(sql => sql`SELECT id FROM police_organizations WHERE id = ${orgId} AND owner_id = ${userId}`);
+            if (!orgs || orgs.length === 0) {
+                return json(403, { error: "Forbidden: You don't have access to this organization" });
+            }
+
+            const policies = await runQuery(sql =>
+                sql`SELECT * FROM police_policies WHERE organization_id = ${orgId}`
+            );
+
+            // Return default policies if not found
+            if (!policies || policies.length === 0) {
+                return json(200, {
+                    organization_id: orgId,
+                    campaign_rules: [
+                        { type: 'pais', label: 'País', required: true },
+                        { type: 'canal', label: 'Canal', required: true },
+                        { type: 'objetivo', label: 'Objetivo', required: true },
+                        { type: 'producto', label: 'Producto', required: true },
+                        { type: 'anio', label: 'Año/Temporada', required: true }
+                    ],
+                    adset_rules: [
+                        { type: 'pais', label: 'País', required: true },
+                        { type: 'publico', label: 'Público/Audiencia', required: true }
+                    ],
+                    ad_rules: [
+                        { type: 'formato', label: 'Formato Visual', required: true },
+                        { type: 'copy', label: 'Variante de Copy', required: true }
+                    ]
+                });
+            }
+
+            return json(200, policies[0]);
+        }
+
+        if (event.httpMethod === "POST") {
+            const body = JSON.parse(event.body || "{}");
+            const { organization_id, campaign_rules, adset_rules, ad_rules } = body;
+
+            if (!organization_id) {
+                return json(400, { error: "Missing organization_id" });
+            }
+
+            // Verify access
+            const orgs = await runQuery(sql => sql`SELECT id FROM police_organizations WHERE id = ${organization_id} AND owner_id = ${userId}`);
+            if (!orgs || orgs.length === 0) {
+                return json(403, { error: "Forbidden" });
+            }
+
+            const timestamp = Date.now();
+            const policyId = `pol_${timestamp}_${Math.random().toString(36).substring(2, 9)}`;
+
+            await runQuery(sql => sql`
+                INSERT INTO police_policies (
+                    id, organization_id, campaign_rules, adset_rules, ad_rules, created_at, updated_at
+                ) VALUES (
+                    ${policyId}, ${organization_id}, 
+                    ${JSON.stringify(campaign_rules || [])}, 
+                    ${JSON.stringify(adset_rules || [])}, 
+                    ${JSON.stringify(ad_rules || [])}, 
+                    ${timestamp}, ${timestamp}
+                ) ON CONFLICT (organization_id) DO UPDATE SET
+                    campaign_rules = EXCLUDED.campaign_rules,
+                    adset_rules = EXCLUDED.adset_rules,
+                    ad_rules = EXCLUDED.ad_rules,
+                    updated_at = EXCLUDED.updated_at
+            `);
+
+            return json(200, { success: true });
+        }
+
+        return json(404, { error: "Endpoint not found" });
+
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[api-police-policies] Error:", message);
+        return json(500, { error: safeError(err, process.env.NODE_ENV === "development") });
+    }
+};

@@ -1,0 +1,47 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.env
+*.sqlite
+*.sqlite-journal
+
+# Local Netlify folder
+.netlify
+
+# Environment secrets — never commit real values
+env.json
+scripts/*
+!scripts/skill.sh
+!scripts/security-tests.sh
+!scripts/gcp-to-netlify.sh
+!scripts/security_check.js
+# Build outputs
+production_update.zip
+video-lab/build/
+build_output.log
+
+# SQLite local databases (contain API keys / secrets)
+*.db
+*.sqlite
+*.sqlite3

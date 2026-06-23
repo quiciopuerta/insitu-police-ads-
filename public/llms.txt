@@ -1,0 +1,28 @@
+# INsitu AI (insitu.company)
+
+> Plataforma SaaS de optimización de campañas publicitarias con Inteligencia Artificial Multimodal.
+
+## Resumen
+INsitu AI es un laboratorio de inteligencia artificial aplicado al marketing digital. Utiliza tres modelos fundacionales en paralelo (Google Gemini 2.0, OpenAI GPT-4o y Anthropic Claude) para auditar, optimizar y planificar campañas en Google Ads, Meta Ads y TikTok Ads.
+
+## Casos de Uso y Funcionalidades
+- **Auditoría de Google Ads**: Optimización de copy SEM, Quality Score, y detección automática de palabras clave negativas (ahorro de presupuesto).
+- **Análisis Neuro-Visual de Imágenes**: Carga cognitiva, heatmaps de atención y AOI (Area of Interest) scoring predictivo sin eye-tracking físico.
+- **Análisis de Video Publicitario**: Detección de puntos de abandono, optimización de retención y análisis de hooks para TikTok, Reels y Shorts.
+- **Vigilancia de Competidores (Competitor Tracker)**: Monitoreo en tiempo real de anuncios de la competencia.
+- **Brand Guardian**: Supervisión automatizada de guías de estilo, tono de voz y consistencia visual en todas las comunicaciones.
+
+## Planes y Precios
+1. **ON-SITE (Starter)**: $29/mes. Incluye 1,750 tokens mensuales, auditoría SEM/SEO completa, análisis neuro-visual de imágenes y generación básica de imágenes con IA.
+2. **DEEP SCAN (Growth)**: $49/mes. Incluye 7,500 tokens mensuales. Añade análisis de video avanzado, Creative Lab y Ads Optimizer Pro.
+3. **OMNI-CHANNEL (Agency)**: Plan personalizado (contactar ventas). Incluye 50,000 tokens, Brand Guardian, White Label, Intelligent Feedback Loop y Competitor Tracker Pro. Ideal para agencias grandes.
+
+## FAQ Clave
+- **¿Qué modelos usa?**: Gemini 2.0, GPT-4o y Claude.
+- **¿Tiene prueba gratis?**: Sí, la primera auditoría es gratuita, sin necesidad de tarjeta de crédito.
+- **¿Es compatible con agencias?**: Sí, ofrece reportes White Label en PDF listos para enviar a clientes.
+
+## Links Oficiales
+- Web: https://insitu.company/
+- Planes: https://insitu.company/pricing
+- Contacto: https://insitu.company/contact
