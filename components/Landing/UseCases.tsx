@@ -26,32 +26,32 @@ const UseCases: React.FC<UseCasesProps> = ({ language }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
+            emoji: "🛡️",
+            title: language === "es" ? "Agencias & MCCs" : "Agencies & MCCs",
+            desc: language === "es"
+              ? "Monitorea decenas de cuentas simultáneamente. Detecta violaciones de políticas en tiempo real y evita bloqueos masivos que afecten a tus clientes."
+              : "Monitor dozens of accounts simultaneously. Detect policy violations in real-time and prevent massive blockages that affect your clients.",
+          },
+          {
+            emoji: "🏥",
+            title: language === "es" ? "Nichos Restringidos" : "Restricted Niches",
+            desc: language === "es"
+              ? "Para cuentas de Salud, Servicios Financieros y Legal. Escanea el Ad Copy para evitar reclamos médicos no verificados o promesas financieras falsas."
+              : "For Healthcare, Financial Services, and Legal accounts. Scan Ad Copy to avoid unverified medical claims or false financial promises.",
+          },
+          {
+            emoji: "🔒",
+            title: "E-commerce & Dropshipping",
+            desc: language === "es"
+              ? "Analiza Landing Pages en busca de malware, redirecciones engañosas y falta de políticas de transparencia antes de enviar tráfico pagado."
+              : "Analyze Landing Pages for malware, deceptive redirects, and missing transparency policies before sending paid traffic.",
+          },
+          {
             emoji: "🚀",
-            title: language === "es" ? "Freelancers & Solopreneurs" : "Freelancers & Solopreneurs",
+            title: language === "es" ? "Performance Marketers" : "Performance Marketers",
             desc: language === "es"
-              ? "Optimiza tu copy SEM, detecta keywords negativas y genera reportes profesionales sin necesidad de un equipo de analistas."
-              : "Optimize your SEM copy, detect negative keywords, and generate professional reports without an analyst team.",
-          },
-          {
-            emoji: "📈",
-            title: language === "es" ? "Agencias de Marketing" : "Marketing Agencies",
-            desc: language === "es"
-              ? "Gestiona decenas de cuentas simultáneamente. Reportes white-label, auditorías masivas de creativos y Brand Guardian automático."
-              : "Manage dozens of accounts simultaneously. White-label reports, mass creative audits, and automatic Brand Guardian.",
-          },
-          {
-            emoji: "🛒",
-            title: "E-commerce & DTC",
-            desc: language === "es"
-              ? "Maximiza el ROAS de tus campañas de Shopping, analiza la retención de tus videos de producto y optimiza catálogos."
-              : "Maximize ROAS on your Shopping campaigns, analyze product video retention, and optimize catalogs.",
-          },
-          {
-            emoji: "🏢",
-            title: language === "es" ? "Marcas Corporativas" : "Enterprise Brands",
-            desc: language === "es"
-              ? "Supervision de compliance de marca a escala, análisis de consistencia cross-channel y dashboards ejecutivos con AI-driven insights."
-              : "Brand compliance monitoring at scale, cross-channel consistency analysis, and executive dashboards with AI-driven insights.",
+              ? "No pierdas días de optimización por una suspensión de Circumventing Systems o Unacceptable Business Practices. Escanea todo antes de publicar."
+              : "Don't lose optimization days due to a Circumventing Systems or Unacceptable Business Practices suspension. Scan everything before publishing.",
           },
         ].map((useCase, i) => (
           <motion.div
