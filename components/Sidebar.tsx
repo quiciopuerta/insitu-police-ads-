@@ -35,6 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superAdmin' || currentUser?.email === 'admin@insitu.ai';
   const isSuperAdmin = currentUser?.role === 'superAdmin' || currentUser?.email === 'admin@insitu.ai';
 
+  const navigationMenu = [
     {
       label: language === 'es' ? 'Platform' : 'Platform',
       items: [
@@ -48,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         { id: 'scripts', icon: 'code', label: 'Script Gen', color: 'text-lime-400' },
       ]
     }
-
+  ];
   const handleTabClick = (item: any, e: React.MouseEvent) => {
     e.preventDefault();
     if (item.url) {
