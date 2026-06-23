@@ -131,6 +131,30 @@ export const userService = {
       .catch((e) => logger.warn("[SYNC] Could not sync users:", e));
   },
 
+  verifySession: async (): Promise<AuthUser | null> => {
+    try {
+      // First, try to fetch the session from the backend using the HTTP-Only cookie
+      const response = await fetch(`${API_URL}/auth/me`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // Envia las cookies cross-domain
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user) {
+          userService.setCurrentUser(data.user);
+          return data.user;
+        }
+      }
+    } catch (e) {
+      logger.warn("[AUTH] Could not verify session with backend:", e);
+    }
+    
+    // Fallback to local storage
+    return userService.getCurrentUser();
+  },
+
   register: async (
     username: string,
     password: string,

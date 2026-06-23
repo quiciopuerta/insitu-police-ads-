@@ -102,6 +102,7 @@ import { historyService } from "./services/historyService";
 import { LocalAIManager } from "./components/ui/LocalAIManager";
 import { DesktopSubscriptionGate } from "./components/ui/DesktopSubscriptionGate";
 import { ExecutionRouter } from "./services/bridge/ExecutionRouter";
+import { AccessGuard } from "./components/AccessGuard";
 
 
 const PageLoader = () => (
@@ -139,6 +140,7 @@ const App = () => {
     setIsTermsOpen,
     isGlossaryOpen,
     setIsGlossaryOpen,
+    isVerifying,
   } = useAuth(language);
   const isAdmin = currentUser?.role === 'admin' || 
                   currentUser?.role === 'superAdmin' || 
@@ -478,6 +480,14 @@ const App = () => {
     currentUser.subscription?.expiryDate > 0 && 
     Date.now() > currentUser.subscription.expiryDate;
 
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen w-screen bg-[#020617] flex items-center justify-center">
+        <PageLoader />
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen w-screen antialiased flex relative transition-colors duration-300 bg-[#020617] text-white font-body`}>
       <AnalyticsProvider />
@@ -614,7 +624,9 @@ const App = () => {
               {!currentUser ? (
                 <AuthGate onLogin={handleLogin} onCancel={() => {}} language={language} />
               ) : (
-                <PoliceAdsDashboard currentUser={currentUser} />
+                <AccessGuard toolId="police-ads" language={language} currentUser={currentUser}>
+                  <PoliceAdsDashboard currentUser={currentUser} />
+                </AccessGuard>
               )}
             </div>
           )}
@@ -862,7 +874,9 @@ const App = () => {
 
           {activeTab === "scripts" && (
             <Suspense fallback={<PageLoader />}>
-              <ScriptGeneratorView language={language} />
+              <AccessGuard toolId="script-gen" language={language} currentUser={currentUser}>
+                <ScriptGeneratorView language={language} />
+              </AccessGuard>
             </Suspense>
           )}
 

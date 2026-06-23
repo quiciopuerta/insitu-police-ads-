@@ -12,10 +12,25 @@ export const useAuth = (language: Language) => {
     const [checkoutTier, setCheckoutTier] = useState<PlanTier | null>(null);
     const [pendingPlan, setPendingPlan] = useState<PlanTier | null>(null);
 
+    const [isVerifying, setIsVerifying] = useState(true);
+
     useEffect(() => {
         authService.init();
-        const user = authService.getCurrentUser();
-        if (user) setCurrentUser(user);
+        // Fallback rápido local
+        const localUser = authService.getCurrentUser();
+        if (localUser) setCurrentUser(localUser);
+
+        // Verificación cross-domain al backend
+        authService.verifySession().then(user => {
+            if (user) {
+                setCurrentUser(user);
+            } else {
+                setCurrentUser(null);
+            }
+            setIsVerifying(false);
+        }).catch(() => {
+            setIsVerifying(false);
+        });
     }, []);
 
     const handleLogin = (user: AuthUser) => {
@@ -62,5 +77,6 @@ export const useAuth = (language: Language) => {
         isPrivacyOpen, setIsPrivacyOpen,
         isTermsOpen, setIsTermsOpen,
         isGlossaryOpen, setIsGlossaryOpen,
+        isVerifying,
     };
 };

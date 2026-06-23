@@ -246,6 +246,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/check-access"
+  to = "/.netlify/functions/api-check-access"
+  status = 200
+  force = true
+
 # Extension auth — Netlify Function
 [[redirects]]
   from = "/api/extension-auth"

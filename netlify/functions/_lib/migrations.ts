@@ -414,6 +414,18 @@ export async function runMigrations(): Promise<void> {
         `;
         await sql`CREATE INDEX IF NOT EXISTS idx_pur_user ON platform_update_reads (user_id)`.catch(() => {});
 
+        // ── user_tools (RBAC for Subdomains) ──────────────────────────────────
+        await sql`
+            CREATE TABLE IF NOT EXISTS user_tools (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                tool_name TEXT NOT NULL,
+                granted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, tool_name)
+            )
+        `;
+        await sql`CREATE INDEX IF NOT EXISTS idx_user_tools_user_id ON user_tools (user_id)`.catch(() => {});
+
         // ── user_scripts (Ads Optimizer Scripts) ───────────────────────────────
         await sql`
             CREATE TABLE IF NOT EXISTS user_scripts (

@@ -22,11 +22,11 @@ const MODAL_PATHS = ['terms', 'privacy', 'glossary', 'pricing', 'technology', 'a
 
 function parseInitialTab(): TabType {
     const fullPath = window.location.pathname.slice(1).split('/')[0];
-    if (MODAL_PATHS.includes(fullPath)) return 'analyzer';
+    if (MODAL_PATHS.includes(fullPath)) return 'police-ads';
     if (fullPath.startsWith('blog')) return 'blog';
     if (fullPath.startsWith('creative-lab')) return 'creative-lab';
     if (CREATIVE_TAB_ROUTES[fullPath]) return 'creative-lab';
-    return (VALID_TABS.includes(fullPath as TabType) ? (fullPath as TabType) : 'analyzer');
+    return (VALID_TABS.includes(fullPath as TabType) ? (fullPath as TabType) : 'police-ads');
 }
 
 function parseInitialFeatureTab(): string | null {
@@ -95,7 +95,7 @@ export const useNavigation = () => {
             } else if (path && VALID_TABS.includes(path as TabType)) {
                 setActiveTab(path as TabType);
             } else if (!path || MODAL_PATHS.includes(path)) {
-                setActiveTab('analyzer');
+                setActiveTab('police-ads');
             }
         };
 
@@ -121,7 +121,7 @@ export const useNavigation = () => {
         } else if (MODAL_PATHS.includes(activeTab)) {
             return; // modal routes don't change the URL
         } else {
-            desiredPath = activeTab === 'analyzer' ? '/' : `/${activeTab}`;
+            desiredPath = activeTab === 'police-ads' ? '/' : `/${activeTab}`;
         }
 
         if (window.location.pathname !== desiredPath) {

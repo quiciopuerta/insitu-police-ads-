@@ -35,50 +35,27 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superAdmin' || currentUser?.email === 'admin@insitu.ai';
   const isSuperAdmin = currentUser?.role === 'superAdmin' || currentUser?.email === 'admin@insitu.ai';
 
-  const navGroups = [
     {
-      label: language === 'es' ? 'Core Tools' : 'Core Tools',
+      label: language === 'es' ? 'Platform' : 'Platform',
       items: [
-        { id: 'analyzer', icon: 'dashboard', label: language === 'es' ? 'Inicio' : 'Home', color: 'text-violet-400' },
-        { id: 'search', icon: 'analytics', label: language === 'es' ? 'Auditoría SEM' : 'SEM Audit', color: 'text-magenta' },
-        { id: 'image-audit', icon: 'image', label: language === 'es' ? 'Auditoría Imagen' : 'Image Audit', color: 'text-cyan' },
-        { id: 'video-audit', icon: 'movie', label: language === 'es' ? 'Auditoría Video' : 'Video Audit', color: 'text-fuchsia-400' },
-        { id: 'traffic-checker', icon: 'track_changes', label: language === 'es' ? 'Rastreo Competidores' : 'Competitor Tracker', color: 'text-amber-400' },
-        { id: 'campaigns', icon: 'auto_awesome', label: language === 'es' ? 'Optimizador Ads' : 'Ads Optimizer', color: 'text-emerald-400' },
-        { id: 'brand-identity', icon: 'fingerprint', label: 'Brand Identity', color: 'text-rose-400' },
+        { id: 'main-platform', icon: 'arrow_back', label: language === 'es' ? 'Volver a INsitu AI' : 'Back to INsitu AI', color: 'text-slate-400', url: 'https://insitu.company' }
       ]
     },
     {
-      label: language === 'es' ? 'Creative Hub' : 'Creative Hub',
+      label: language === 'es' ? 'Herramientas' : 'Tools',
       items: [
-        { id: 'gen-ads', icon: 'edit_square', label: 'Ad Copy Lab', color: 'text-violet-400' },
-        { id: 'compare-ai', icon: 'compare', label: 'Compare AI', color: 'text-sky-400' },
-        { id: 'research-hub', icon: 'travel_explore', label: 'Research IA', color: 'text-teal-400' },
-        ...(isSuperAdmin ? [
-          { id: 'creative-lab', icon: 'palette', label: 'Creative Hub', color: 'text-fuchsia-400' },
-          { id: 'portavoz-ia', icon: 'record_voice_over', label: 'Mi Avatar', color: 'text-pink-400' },
-          { id: 'animate', icon: 'animation', label: 'Imagen a Video', color: 'text-purple-400' },
-          { id: 'audio', icon: 'graphic_eq', label: 'Clonación y TTS', color: 'text-indigo-400' },
-        ] : [])
-      ]
-    },
-    {
-      label: language === 'es' ? 'Bulk & Ops' : 'Bulk & Ops',
-      items: [
-        { id: 'mass-ads', icon: 'library_add', label: 'Mass Ads', color: 'text-orange-400' },
-        { id: 'scripts', icon: 'code', label: 'Script Gen', color: 'text-lime-400' },
         { id: 'police-ads', icon: 'local_police', label: 'Police Ads', color: 'text-red-400' },
-        ...(isSuperAdmin ? [
-          { id: 'retail', icon: 'storefront', label: 'Catálogo Pro', color: 'text-yellow-400' },
-          { id: 'master', icon: 'movie_filter', label: 'Mastering Pro', color: 'text-cyan' },
-        ] : [])
+        { id: 'scripts', icon: 'code', label: 'Script Gen', color: 'text-lime-400' },
       ]
     }
-  ];
 
-  const handleTabClick = (id: string, e: React.MouseEvent) => {
+  const handleTabClick = (item: any, e: React.MouseEvent) => {
     e.preventDefault();
-    onTabChange(id);
+    if (item.url) {
+      window.open(item.url, '_self');
+      return;
+    }
+    onTabChange(item.id);
   };
 
   const plan = currentUser?.subscription?.plan;
@@ -98,8 +75,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             <span className="material-symbols-outlined text-white text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
           </div>
           <div>
-            <div className="text-[13px] font-black tracking-tighter text-white leading-none">INsitu AI</div>
-            <div className="text-[9px] font-black uppercase tracking-[0.25em] text-white/25 mt-0.5">Intelligence Platform</div>
+            <div className="text-[13px] font-black tracking-tighter text-white leading-none">INsitu Police Ads</div>
+            <div className="text-[9px] font-black uppercase tracking-[0.25em] text-white/25 mt-0.5">Policy & Compliance</div>
           </div>
         </div>
       </div>
@@ -118,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <a
                     key={item.id}
                     href={`#${item.id}`}
-                    onClick={(e) => handleTabClick(item.id, e)}
+                    onClick={(e) => handleTabClick(item, e)}
                     className={`nav-item ${isActive ? 'nav-item-active' : 'nav-item-inactive'}`}
                   >
                     <span className={`material-symbols-outlined text-[18px] transition-all duration-200 shrink-0 ${isActive ? 'text-magenta scale-110' : item.color + '/60'}`}

@@ -18,6 +18,7 @@ export const authService = {
   register: userService.register,
   logout: userService.setCurrentUser.bind(null, null),
   getCurrentUser: userService.getCurrentUser,
+  verifySession: userService.verifySession,
   updateProfile: userService.updateProfile,
   setPlan: userService.setPlan,
   canUseTrial: userService.canUseTrial,
