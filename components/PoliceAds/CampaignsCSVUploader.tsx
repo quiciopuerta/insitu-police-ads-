@@ -65,13 +65,14 @@ export const CampaignsCSVUploader: React.FC<CampaignsCSVUploaderProps> = ({ curr
 
     const rawHeaders = lines[0].split(',').map(h => h.trim().toLowerCase());
     
-    // Mapeo flexible de columnas
+    // Mapeo flexible de columnas (orden específico para evitar colisiones)
     const headerMapping: Record<string, string> = {};
     rawHeaders.forEach(h => {
-      if (h.includes('name') || h.includes('nombre') || h.includes('campaña') || h.includes('campaign')) headerMapping[h] = 'name';
+      // Priorizar campos específicos compuestos
+      if (h.includes('max') || h.includes('límite') || h.includes('máximo') || h.includes('maximo')) headerMapping[h] = 'max_budget_allowed';
+      else if (h.includes('name') || h.includes('nombre') || h.includes('campaña') || h.includes('campaign')) headerMapping[h] = 'name';
       else if (h.includes('platform') || h.includes('plataforma') || h.includes('canal')) headerMapping[h] = 'platform';
       else if (h.includes('budget') || h.includes('presupuesto')) headerMapping[h] = 'budget';
-      else if (h.includes('max') || h.includes('límite')) headerMapping[h] = 'max_budget_allowed';
       else if (h.includes('status') || h.includes('estado')) headerMapping[h] = 'status';
       else if (h.includes('country') || h.includes('país') || h.includes('pais')) headerMapping[h] = 'country';
       else if (h.includes('channel') || h.includes('medio')) headerMapping[h] = 'channel';
@@ -229,7 +230,25 @@ export const CampaignsCSVUploader: React.FC<CampaignsCSVUploaderProps> = ({ curr
       </div>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-white/70 mb-2">Archivo CSV</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-medium text-white/70">Archivo CSV</label>
+          <button
+            onClick={() => {
+              const headers = ['Nombre Campaña', 'Plataforma', 'Presupuesto Diario', 'Presupuesto Maximo', 'Estado', 'País', 'Medio', 'Objetivo', 'Producto', 'Año'];
+              const sampleRow = ['Ejemplo Black Friday', 'meta', '100', '3000', 'active', 'AR', 'social', 'CONVERSIONS', 'Zapatillas', '2026'];
+              const csvContent = [headers.join(','), sampleRow.join(',')].join('\n');
+              const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = `plantilla_campanas.csv`;
+              link.click();
+            }}
+            className="text-xs text-[#4f6bff] hover:text-white transition-colors flex items-center gap-1 font-semibold"
+          >
+            <Download className="w-3 h-3" />
+            Descargar Plantilla
+          </button>
+        </div>
         <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-magenta/50 transition-colors">
           <input
             type="file"

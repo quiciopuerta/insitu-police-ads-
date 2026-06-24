@@ -90,10 +90,10 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
         <div className="flex gap-2">
           <button
             onClick={() => {
-              const headers = ['Fecha/Hora', 'Cliente', 'Marca', 'Plataforma', 'Campaña', 'Presupuesto', 'IDs Plataforma', 'Usuario', 'Estado', 'UTM'];
+              const headers = ['Fecha/Hora', 'Cliente', 'Marca', 'Plataforma', 'Campaña', 'Tipo Presupuesto', 'Monto Presupuesto', 'Fecha Inicio', 'Fecha Fin', 'Objetivo', 'IDs Plataforma', 'Usuario', 'Estado', 'UTM'];
               const csvContent = [
                 headers.join(','),
-                ...(Array.isArray(filteredActivities) ? filteredActivities : []).map(a => `"${a.created_at ? new Date(a.created_at).toLocaleString() : ''}","${a.client_name || ''}","${a.brand || ''}","${a.platform || ''}","${a.campaign_name || ''}","${a.budget || ''}","${a.campaign_id || ''} ${a.adset_id || ''} ${a.ad_id || ''}","${a.user_email || ''}","${a.status || ''}","${a.utm_url || ''}"`)
+                ...(Array.isArray(filteredActivities) ? filteredActivities : []).map(a => `"${a.created_at ? new Date(Number(a.created_at)).toLocaleString() : ''}","${a.client_name || ''}","${a.brand || ''}","${a.platform || ''}","${a.campaign_name || ''}","${a.budget_type || ''}","${a.budget || ''}","${a.start_date ? new Date(a.start_date).toLocaleDateString() : ''}","${a.end_date ? new Date(a.end_date).toLocaleDateString() : ''}","${a.objective || ''}","${a.campaign_id || ''} ${a.adset_id || ''} ${a.ad_id || ''}","${a.user_email || ''}","${a.status || ''}","${a.utm_url || ''}"`)
               ].join('\n');
               const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
               const link = document.createElement('a');
@@ -250,7 +250,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
                   <tr key={act.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="text-white/80 whitespace-nowrap">
-                        {act.created_at ? new Date(act.created_at).toLocaleString() : 'N/A'}
+                        {act.created_at ? new Date(Number(act.created_at)).toLocaleString() : 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4">

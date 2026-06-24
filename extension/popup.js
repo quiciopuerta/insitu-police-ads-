@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let detectedIds = { campaign_id: null, adset_id: null, ad_id: null };
 
-  const loadClients = async (token) => {
+  const loadClients = async (token, activeClient) => {
     try {
       const select = document.getElementById('client-select');
       if (!select) return;
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!res.ok) return;
       const clients = await res.json();
       select.innerHTML = '<option value="">Selecciona Cliente</option>' + 
-        clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        clients.map(c => `<option value="${c.id}" ${c.id === activeClient ? 'selected' : ''}>${c.name}</option>`).join('');
     } catch (err) {
       console.warn('Failed to load clients:', err);
     }
@@ -312,6 +312,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const budget = document.getElementById('campaign-budget')?.value || null;
       const utm_url = document.getElementById('url-output')?.textContent || '';
       
+      const objective = document.getElementById('objective')?.value || null;
+
       const maxBudgetRes = await chrome.storage.local.get({ maxBudget: 500 });
       const max_budget_allowed = maxBudgetRes.maxBudget;
 
@@ -322,6 +324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         platform: platformVal,
         campaign_name: campaignName,
         budget,
+        objective,
         max_budget_allowed,
         status,
         utm_url,
@@ -359,9 +362,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const budgetAlert = document.getElementById('budget-alert');
 
     // Load clients
-    chrome.storage.local.get(['insitu_user_token'], (res) => {
+    chrome.storage.local.get(['insitu_user_token', 'insitu_active_client', 'insitu_active_brand'], (res) => {
       if (res.insitu_user_token) {
-        loadClients(res.insitu_user_token);
+        loadClients(res.insitu_user_token, res.insitu_active_client);
+      }
+      if (document.getElementById('brand-input') && res.insitu_active_brand) {
+        document.getElementById('brand-input').value = res.insitu_active_brand;
       }
     });
 
@@ -435,11 +441,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selectClient = document.getElementById('client-select');
     const inputBrand = document.getElementById('brand-input');
 
+    const saveClientAndBrand = () => {
+      const clientVal = selectClient ? selectClient.value : null;
+      const brandVal = inputBrand ? inputBrand.value : null;
+      chrome.storage.local.set({ 
+        insitu_active_client: clientVal, 
+        insitu_active_brand: brandVal 
+      });
+    };
+
     [inputCountry, inputChannel, inputObjective, inputProduct, inputSeason, baseUrlInput, inputCampaignBudget, selectClient, inputBrand].forEach(el => {
       if (el) {
-        el.addEventListener('input', updateOutput);
+        el.addEventListener('input', () => {
+          if (el === selectClient || el === inputBrand) saveClientAndBrand();
+          updateOutput();
+        });
         if (el.tagName === 'SELECT') {
-          el.addEventListener('change', updateOutput);
+          el.addEventListener('change', () => {
+            if (el === selectClient || el === inputBrand) saveClientAndBrand();
+            updateOutput();
+          });
         }
       }
     });

@@ -33,7 +33,10 @@ const InsituValidator = {
     'CONV': 'Conversiones',
     'LEAD': 'Clientes Potenciales',
     'TRAF': 'Tráfico',
-    'AW': 'Reconocimiento (Awareness)'
+    'AW': 'Reconocimiento (Awareness)',
+    'ENG': 'Interacciones (Engagement)',
+    'APP': 'Promoción de App',
+    'SALES': 'Ventas'
   },
 
   // Mapeo UTM según canales de insitu.company
@@ -240,7 +243,7 @@ const InsituValidator = {
 
     console.log('[insitu.company] Compliance Event:', event);
 
-    const syncActivity = (token) => {
+    const syncActivity = (token, clientId, brand) => {
       const apiBase = 'https://main--insitu-company-ads.netlify.app';
 
       // 1. Log to compliance (ai_technical_logs)
@@ -263,6 +266,8 @@ const InsituValidator = {
         start_date: dates.startDate,
         end_date: dates.endDate,
         objective: objective,
+        client_id: clientId || null,
+        brand: brand || null,
         campaign_id,
         adset_id,
         ad_id
@@ -279,7 +284,7 @@ const InsituValidator = {
     };
 
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get({ insitu_compliance_logs: [], insitu_user_token: null }, (result) => {
+      chrome.storage.local.get({ insitu_compliance_logs: [], insitu_user_token: null, insitu_active_client: null, insitu_active_brand: null }, (result) => {
         let logs = result.insitu_compliance_logs || [];
         logs.unshift(event);
         if (logs.length > 50) logs.pop(); // Keep last 50
@@ -288,14 +293,14 @@ const InsituValidator = {
         // Sincronizar al backend de INsitu (Supabase)
         const token = result.insitu_user_token || window.insituUserToken;
         if (token) {
-          syncActivity(token);
+          syncActivity(token, result.insitu_active_client, result.insitu_active_brand);
         }
       });
     } else {
       // Sync to backend if no extension API (fallback)
       const token = window.insituUserToken;
       if (token) {
-        syncActivity(token);
+        syncActivity(token, null, null);
       }
     }
   },
@@ -482,6 +487,18 @@ const InsituValidator = {
 
   detectUIObjective() {
     try {
+      let detectedObjectiveText = '';
+      
+      // 1. Try URL parameters first (most reliable)
+      const url = window.location.href.toLowerCase();
+      if (url.includes('objective=outcome_sales') || url.includes('objective=sales')) return 'SALES';
+      if (url.includes('objective=outcome_leads') || url.includes('objective=lead')) return 'LEAD';
+      if (url.includes('objective=outcome_traffic') || url.includes('objective=traffic')) return 'TRAF';
+      if (url.includes('objective=outcome_awareness') || url.includes('objective=awareness')) return 'AW';
+      if (url.includes('objective=outcome_engagement') || url.includes('objective=engagement')) return 'ENG';
+      if (url.includes('objective=outcome_app_promotion') || url.includes('objective=app')) return 'APP';
+
+      // 2. Try DOM elements
       const selectedElements = document.querySelectorAll(
         '[aria-selected="true"], [aria-checked="true"], input[type="radio"]:checked, .selected, .active, [role="tab"][aria-selected="true"]'
       );
@@ -501,10 +518,13 @@ const InsituValidator = {
         }
       }
 
-      if (detectedObjectiveText.includes('conversiones') || detectedObjectiveText.includes('ventas') || detectedObjectiveText.includes('sales') || detectedObjectiveText.includes('conversion')) return 'CONV';
+      if (detectedObjectiveText.includes('ventas') || detectedObjectiveText.includes('sales')) return 'SALES';
+      if (detectedObjectiveText.includes('conversiones') || detectedObjectiveText.includes('conversion')) return 'CONV';
       if (detectedObjectiveText.includes('clientes potenciales') || detectedObjectiveText.includes('leads') || detectedObjectiveText.includes('lead generation')) return 'LEAD';
       if (detectedObjectiveText.includes('tráfico') || detectedObjectiveText.includes('trafico') || detectedObjectiveText.includes('traffic') || detectedObjectiveText.includes('clics')) return 'TRAF';
       if (detectedObjectiveText.includes('reconocimiento') || detectedObjectiveText.includes('awareness') || detectedObjectiveText.includes('alcance') || detectedObjectiveText.includes('reach')) return 'AW';
+      if (detectedObjectiveText.includes('interacción') || detectedObjectiveText.includes('interacciones') || detectedObjectiveText.includes('engagement') || detectedObjectiveText.includes('mensajes')) return 'ENG';
+      if (detectedObjectiveText.includes('aplicación') || detectedObjectiveText.includes('app promotion') || detectedObjectiveText.includes('promoción de la app')) return 'APP';
 
       return null;
     } catch(e) {
@@ -580,11 +600,18 @@ const InsituValidator = {
         `;
         // Bloquear publicación
         if (window.insituErrorsCount !== undefined) window.insituErrorsCount++;
+      } else if (nameObjectiveCode && !uiObjective) {
+        objectiveHtml = `
+          <div style="display:flex; align-items:center; gap:8px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <span style="font-size:16px;">⚠️</span>
+            <span style="color:#fbbf24;">Aviso: Verifica que el objetivo en la plataforma coincida con <strong>${nameObjectiveCode}</strong>.</span>
+          </div>
+        `;
       } else if (nameObjectiveCode) {
         objectiveHtml = `
           <div style="display:flex; align-items:center; gap:8px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">
             <span style="font-size:16px;">🎯</span>
-            <span style="color:#4ade80;">Objetivo Detectado: <strong>${nameObjectiveCode}</strong></span>
+            <span style="color:#4ade80;">Objetivo Detectado y Validado: <strong>${nameObjectiveCode}</strong></span>
           </div>
         `;
       }

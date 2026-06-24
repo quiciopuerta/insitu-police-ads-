@@ -213,7 +213,7 @@ export const PoliceAdsDashboard: React.FC<PoliceAdsDashboardProps> = ({ currentU
                   {(Array.isArray(alerts) ? alerts : []).slice(0,5).map(a => (
                     <div key={a.id} className="flex items-center justify-between p-3 rounded-lg bg-[#ff477b]/10 border border-[#ff477b]/20">
                       <span className="text-sm text-[#ff477b]">{a.message}</span>
-                      <span className="text-xs text-[#ff477b]/60">{new Date(a.created_at).toLocaleDateString()}</span>
+                      <span className="text-xs text-[#ff477b]/60">{new Date(Number(a.created_at)).toLocaleDateString()}</span>
                     </div>
                   ))}
                 </div>
@@ -248,7 +248,7 @@ export const PoliceAdsDashboard: React.FC<PoliceAdsDashboardProps> = ({ currentU
                 const headers = ['ID', 'Mensaje', 'Campaña ID', 'Estado', 'Fecha/Hora'];
                 const csvContent = [
                   headers.join(','),
-                  ...(Array.isArray(alerts) ? alerts : []).map(a => `"${a.id}","${a.message}","${a.campaign_id}","${a.status}","${a.created_at ? new Date(a.created_at).toLocaleString() : ''}"`)
+                  ...(Array.isArray(alerts) ? alerts : []).map(a => `"${a.id}","${a.message}","${a.campaign_id}","${a.status}","${a.created_at ? new Date(Number(a.created_at)).toLocaleString() : ''}"`)
                 ].join('\n');
                 const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
