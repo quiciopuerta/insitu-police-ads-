@@ -174,8 +174,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const result = await response.json();
 
-      if (response.ok && (result.token || result.user)) {
-        const token = result.token || result.user.id;
+      if (response.ok && result.token) {
+        const token = result.token; // JWT firmado — nunca usar UUID como token
         await chrome.storage.local.set({
           insitu_user_token: token,
           insitu_user_email: email,
