@@ -11,7 +11,7 @@ import { checkRateLimit, getClientIp } from './_lib/rateLimiter';
 
 const headers = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, X-User-Id",
+    "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Gemini-Key",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Content-Type": "application/json",
 };

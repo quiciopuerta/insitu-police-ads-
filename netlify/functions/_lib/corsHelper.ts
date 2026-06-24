@@ -30,7 +30,7 @@ const isOriginAllowed = (origin: string | undefined): boolean => {
 
 export const getCorsHeaders = (origin: string | undefined = "") => ({
     "Access-Control-Allow-Origin": isOriginAllowed(origin) ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id, X-Gemini-Key",
     "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Credentials": "true",
     "Vary": "Origin",

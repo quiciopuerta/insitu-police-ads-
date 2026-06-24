@@ -77,7 +77,8 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
 Tu objetivo es crear un script de optimización de Google Ads basado en las instrucciones del usuario (el brief), la configuración provista y los datos de rendimiento.
 Asegúrate de que el script use la API de Google Ads Scripts más reciente (AdsApp).
 El código debe ser limpio, estructurado y seguro, incluyendo control de errores y logs explicativos de las acciones tomadas.
-Debes alertar activamente si alguna regla propuesta puede afectar negativamente el rendimiento de las campañas o el consumo desmedido del presupuesto.`;
+Debes alertar activamente si alguna regla propuesta puede afectar negativamente el rendimiento de las campañas o el consumo desmedido del presupuesto.
+El script generado debe tener la capacidad de ejecutarse sobre una sola campaña específica si es necesario, definiendo una constante como \`const CAMPAIGN_NAME_FILTER = "";\` al inicio del script.`;
 
         const prompt = `Por favor, genera un Google Ads Script y un reporte de optimización detallado.
 
@@ -87,6 +88,8 @@ Configuración de seguridad/comportamiento elegida:
 ${configuration ? JSON.stringify(configuration, null, 2) : "(Optimizar de forma balanceada y segura)"}
 
 ${realAccountData ? `Aquí tienes contexto de los datos actuales de la cuenta para que puedas basar tu flujo de decisiones y alertas en métricas reales:\n${JSON.stringify(realAccountData, null, 2)}\n` : ""}
+
+Instrucción de filtro por campaña: Asegúrate de incluir al inicio del script una variable \`const CAMPAIGN_NAME_FILTER = "";\`. Configura los selectores de la API de AdsApp (ej. \`AdsApp.campaigns()\`) para que filtren por el nombre exacto de la campaña si esta variable no está vacía.
 
 Devuelve tu respuesta estructurada utilizando EXACTAMENTE las siguientes etiquetas de marcado (no agregues texto fuera de ellas):
 
