@@ -34,6 +34,15 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+// Force unregister any existing Service Workers to remove the PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (let registration of registrations) {
+      registration.unregister();
+    }
+  });
+}
+
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
