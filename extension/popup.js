@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showMainApp();
       } else {
         if (response.ok && !result.token) {
-          authError.textContent = 'Error: Servidor no retornó token JWT.';
+          authError.textContent = 'Error: Servidor no retornó token. Recibido: ' + JSON.stringify(result).substring(0, 80);
         } else {
           authError.textContent = result.error || ('Credenciales inválidas (HTTP ' + response.status + ')');
         }
