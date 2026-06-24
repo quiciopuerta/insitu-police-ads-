@@ -145,7 +145,7 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
         </p>
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {rules?.map((rule, index) => (
+          {(Array.isArray(rules) ? rules : []).map((rule, index) => (
             <div key={index} className="flex items-center gap-2 bg-[#1a1f36] px-3 py-2 rounded-lg border border-white/10 group">
               <GripVertical className="w-4 h-4 text-white/30 cursor-move" />
               <span className="text-sm font-semibold text-white">{rule.label}</span>

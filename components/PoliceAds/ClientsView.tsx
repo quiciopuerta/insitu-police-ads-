@@ -197,7 +197,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ currentUser }) => {
                   className="w-full px-3 py-2 bg-black/20 border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-[#e5007d] outline-none text-sm font-semibold"
                 >
                   <option value="">-- Sin vincular (Modo Genérico) --</option>
-                  {brandProfiles?.map((p: any) => (
+                  {(Array.isArray(brandProfiles) ? brandProfiles : []).map((p: any) => (
                     <option key={p.id} value={p.id}>
                       {p.brandName}
                     </option>
@@ -242,7 +242,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ currentUser }) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {clients?.map((client: any) => {
+          {(Array.isArray(clients) ? clients : []).map((client: any) => {
             const contactName = client.contact_person || client.contactPerson;
             const monthlyBudgetVal = client.monthly_budget !== null && client.monthly_budget !== undefined 
               ? client.monthly_budget 

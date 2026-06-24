@@ -77,7 +77,7 @@ export const CampaignsView: React.FC<{ campaigns: any[]; loading: boolean; curre
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {campaigns?.map((campaign: any) => (
+                {(Array.isArray(campaigns) ? campaigns : []).map((campaign: any) => (
                   <tr key={campaign.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div>

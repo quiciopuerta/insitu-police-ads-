@@ -53,12 +53,12 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
   };
 
   // Get unique lists for filtering
-  const clients = Array.from(new Set(activities?.map(a => JSON.stringify({ id: a.client_id, name: a.client_name })).filter(Boolean)))
-    ?.map(c => JSON.parse(c as string))
+  const clients = Array.from(new Set((Array.isArray(activities) ? activities : []).map(a => JSON.stringify({ id: a.client_id, name: a.client_name })).filter(Boolean)))
+    .map(c => JSON.parse(c as string))
     .filter(c => c.id);
 
-  const users = Array.from(new Set(activities?.map(a => a.user_email).filter(Boolean)));
-  const platforms = Array.from(new Set(activities?.map(a => a.platform).filter(Boolean)));
+  const users = Array.from(new Set((Array.isArray(activities) ? activities : []).map(a => a.user_email).filter(Boolean)));
+  const platforms = Array.from(new Set((Array.isArray(activities) ? activities : []).map(a => a.platform).filter(Boolean)));
 
   // Filter activities
   const filteredActivities = activities.filter(act => {
@@ -93,7 +93,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
               const headers = ['Fecha/Hora', 'Cliente', 'Marca', 'Plataforma', 'Campaña', 'Presupuesto', 'IDs Plataforma', 'Usuario', 'Estado', 'UTM'];
               const csvContent = [
                 headers.join(','),
-                ...filteredActivities.map(a => `"${a.created_at ? new Date(a.created_at).toLocaleString() : ''}","${a.client_name || ''}","${a.brand || ''}","${a.platform || ''}","${a.campaign_name || ''}","${a.budget || ''}","${a.campaign_id || ''} ${a.adset_id || ''} ${a.ad_id || ''}","${a.user_email || ''}","${a.status || ''}","${a.utm_url || ''}"`)
+                ...(Array.isArray(filteredActivities) ? filteredActivities : []).map(a => `"${a.created_at ? new Date(a.created_at).toLocaleString() : ''}","${a.client_name || ''}","${a.brand || ''}","${a.platform || ''}","${a.campaign_name || ''}","${a.budget || ''}","${a.campaign_id || ''} ${a.adset_id || ''} ${a.ad_id || ''}","${a.user_email || ''}","${a.status || ''}","${a.utm_url || ''}"`)
               ].join('\n');
               const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
               const link = document.createElement('a');
@@ -148,7 +148,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
           className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-[#4f6bff]"
         >
           <option value="" className="bg-[#0b0e17]">Todos los Clientes</option>
-          {clients?.map(c => (
+          {(Array.isArray(clients) ? clients : []).map(c => (
             <option key={c.id} value={c.id} className="bg-[#0b0e17]">{c.name}</option>
           ))}
         </select>
@@ -172,7 +172,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
           className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-[#4f6bff]"
         >
           <option value="" className="bg-[#0b0e17]">Todos los Usuarios</option>
-          {users?.map(u => (
+          {(Array.isArray(users) ? users : []).map(u => (
             <option key={u} value={u} className="bg-[#0b0e17]">{u}</option>
           ))}
         </select>
@@ -184,7 +184,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
           className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-[#4f6bff]"
         >
           <option value="" className="bg-[#0b0e17]">Todas las Plataformas</option>
-          {platforms?.map(p => (
+          {(Array.isArray(platforms) ? platforms : []).map(p => (
             <option key={p} value={p} className="bg-[#0b0e17]">{p}</option>
           ))}
         </select>
@@ -246,7 +246,7 @@ export const ExtensionActivitiesView: React.FC<ExtensionActivitiesViewProps> = (
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredActivities?.map((act: any) => (
+                {(Array.isArray(filteredActivities) ? filteredActivities : []).map((act: any) => (
                   <tr key={act.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="text-white/80 whitespace-nowrap">

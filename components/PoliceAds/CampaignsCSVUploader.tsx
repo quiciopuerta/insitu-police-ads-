@@ -207,7 +207,7 @@ export const CampaignsCSVUploader: React.FC<CampaignsCSVUploaderProps> = ({ curr
             className="w-full bg-[#1a1f36] border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-[#4f6bff]"
           >
             <option value="">Selecciona un cliente...</option>
-            {clients?.map(c => (
+            {(Array.isArray(clients) ? clients : []).map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
@@ -221,7 +221,7 @@ export const CampaignsCSVUploader: React.FC<CampaignsCSVUploaderProps> = ({ curr
             disabled={!selectedClient}
           >
             <option value="">Selecciona una cuenta...</option>
-            {accounts?.filter(a => a.client_id === selectedClient)?.map(a => (
+            {(Array.isArray(accounts) ? accounts : []).filter(a => a.client_id === selectedClient).map(a => (
               <option key={a.id} value={a.id}>{a.name} ({a.platform})</option>
             ))}
           </select>
@@ -267,7 +267,7 @@ export const CampaignsCSVUploader: React.FC<CampaignsCSVUploaderProps> = ({ curr
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {preview?.slice(0, 5)?.map((row, i) => (
+                {(Array.isArray(preview) ? preview : []).slice(0, 5).map((row, i) => (
                   <tr key={i}>
                     <td className="px-4 py-2 text-white">{row.name}</td>
                     <td className="px-4 py-2 text-white/70">{row.platform}</td>
