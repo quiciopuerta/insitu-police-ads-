@@ -1,19 +1,14 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { safeError, logError } from "./_lib/errorHandler";
 
 const DB_URL = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || "";
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 const json = (statusCode: number, body: unknown) => ({
     statusCode,
-    headers: CORS,
+    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
     body: JSON.stringify(body),
 });
 
@@ -26,7 +21,7 @@ const PLAN_LIMITS: Record<string, number> = {
 };
 
 const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
 
     // ── Ensure tables exist (Refactored for Signals) ───────────────────────────
     await runQuery(async (sql) => {
@@ -68,7 +63,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     const params = event.queryStringParameters || {};
 
     // ── IDENTITY VERIFICATION ─────────────────────────────────────────────
-    const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || event.headers["Authorization"]?.replace('Bearer ', '') || "";
+    const userId = getUserIdFromHeaders(event.headers);
     if (!userId) {
         return json(401, { error: "Unauthorized: Missing identity" });
     }

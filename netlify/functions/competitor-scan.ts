@@ -1,3 +1,5 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import nodemailer from "nodemailer";
@@ -17,16 +19,9 @@ const SMTP_PASS = process.env.SMTP_PASS || "";
 const SMTP_FROM_NAME = process.env.SMTP_FROM_NAME || "INsitu AI";
 const APP_URL = process.env.APP_URL || "https://insitu.company";
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 const jsonResponse = (statusCode: number, body: unknown) => ({
     statusCode,
-    headers: CORS,
+    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
     body: JSON.stringify(body),
 });
 
@@ -122,7 +117,7 @@ function buildSignalAlertEmail(
 const handler: Handler = async (event: HandlerEvent) => {
     // Authentication: Require ADMIN_SECRET Bearer token or valid superAdmin user
     const authHeader = event.headers["authorization"] || event.headers["Authorization"] || "";
-    const xUserId = event.headers["x-user-id"] || event.headers["X-User-Id"] || "";
+    const xUserId = getUserIdFromHeaders(event.headers);
     const ADMIN_SECRET = process.env.ADMIN_SECRET || "";
 
     let isAuthorized = false;

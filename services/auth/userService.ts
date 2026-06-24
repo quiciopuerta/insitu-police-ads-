@@ -5,6 +5,7 @@ import { settingsService } from "./settingsService";
 const USR_DB_STORAGE = "insitu_users_db";
 const ACT_SES_STORAGE = "insitu_active_session";
 const LIN_ATT_STORAGE = "insitu_login_attempts";
+const AUTH_TOKEN_STORAGE = "insitu_auth_token";
 import { API_URL, adminFetch } from "../../utils/apiConfig";
 import { logger } from '../../utils/logger';
 
@@ -78,6 +79,7 @@ export const userService = {
       localStorage.removeItem(ACT_SES_STORAGE);
       localStorage.removeItem(USR_DB_STORAGE);
       localStorage.removeItem(LIN_ATT_STORAGE);
+      localStorage.removeItem(AUTH_TOKEN_STORAGE);
     }
   },
 
@@ -268,7 +270,11 @@ export const userService = {
         if (response.ok) {
           const data = await response.json();
           const serverUser = data.user;
+          const serverToken = data.token;
           if (serverUser) {
+            if (serverToken) {
+              localStorage.setItem(AUTH_TOKEN_STORAGE, serverToken);
+            }
             const users = userService.getUsers();
             const idx = users.findIndex((u: any) => u.id === serverUser.id);
             if (idx !== -1) users[idx] = { ...users[idx], ...serverUser };
@@ -793,6 +799,9 @@ export const userService = {
         if (response.ok) {
           const data = await response.json();
           if (data.user) {
+            if (data.token) {
+              localStorage.setItem(AUTH_TOKEN_STORAGE, data.token);
+            }
             userService.setCurrentUser(data.user);
             return { user: data.user };
           }

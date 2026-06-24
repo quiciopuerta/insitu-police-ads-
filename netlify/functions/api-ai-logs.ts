@@ -1,17 +1,12 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { safeError } from "./_lib/errorHandler";
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Content-Type": "application/json",
-};
-
 const jsonResponse = (statusCode: number, body: unknown) => ({
   statusCode,
-  headers: CORS,
+  headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
   body: JSON.stringify(body),
 });
 
@@ -43,7 +38,7 @@ async function ensureTable() {
 
 const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod === "OPTIONS")
-    return { statusCode: 204, headers: CORS, body: "" };
+    return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
 
   // Best-effort table init — never blocks the request
   await ensureTable();
@@ -51,7 +46,7 @@ const handler: Handler = async (event: HandlerEvent) => {
   try {
     // ── GET → Fetch logs for Admins ──────────────────────────────────────────
     if (event.httpMethod === "GET") {
-      const xUserId = event.headers["x-user-id"] || "";
+      const xUserId = getUserIdFromHeaders(event.headers);
 
       if (!xUserId) {
         return jsonResponse(401, { error: "Unauthorized. X-User-Id header required." });

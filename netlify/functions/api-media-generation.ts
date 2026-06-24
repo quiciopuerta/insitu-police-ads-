@@ -1,3 +1,5 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 /**
  * Netlify Function: api-media-generation
  * ======================================
@@ -17,13 +19,6 @@ import { runQuery } from './_lib/db';
 import { getVertexToken, getVertexConfig, gcsSignedUrl } from './_lib/vertex';
 import { validateBody, MediaGenSchema } from './_lib/validators';
 import { validateResearchPackage } from './_lib/researchValidator';
-
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
 
 /**
  * Mapping of UI format names to API aspect ratios.
@@ -278,11 +273,11 @@ async function enhancePrompt(
 
 const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: CORS, body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     }
 
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: "Method not allowed" }) };
+        return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
     let type = 'unknown';
@@ -297,15 +292,15 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
         if (!rateLimit.success) {
             return { 
                 statusCode: 429, 
-                headers: CORS, 
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
                 body: JSON.stringify({ error: "Rate limit exceeded for media generation. Please wait a minute." }) 
             };
         }
 
         // Authentication
-        const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || event.headers["Authorization"]?.replace('Bearer ', '') || "";
+        const userId = getUserIdFromHeaders(event.headers);
         if (!userId) {
-            return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
+            return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
         }
 
         // ── Auth: verificar usuario y rol en DB ─────────────────────────────
@@ -316,7 +311,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
 
         if (userRecord === false || userRecord === null) {
             if (userRecord === false) {
-                return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
+                return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
             }
             console.warn(`[MediaGen] Warning: Database unavailable, bypassing strict user verification for "${userId}"`);
         }
@@ -328,7 +323,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
         const bodyRaw = JSON.parse(rawBody);
         const validation = validateBody(MediaGenSchema, bodyRaw) as any;
         if (!validation.success) {
-            return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: validation.error }) };
+            return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: validation.error }) };
         }
 
         const body = validation.data;
@@ -366,7 +361,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
             console.warn(`[MediaGen] BLOCKED: User ${userId} (role: ${userRecord?.role}) attempted ${type} — Super Admin only.`);
             return {
                 statusCode: 403,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({
                     error: "Acceso restringido. La creación de imágenes, videos, animaciones y audio está disponible exclusivamente para Super Admin.",
                     type: 'SUPERADMIN_REQUIRED'
@@ -376,7 +371,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
         
         
         if (!type || !payload) {
-            return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Missing type or payload" }) };
+            return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing type or payload" }) };
         }
 
         const { key: apiKey, source: keySource } = getGeminiKey();
@@ -527,7 +522,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                                 })) || [];
                                 if (results.length === 0) throw new Error("Imagen Vertex returned no image bytes.");
                                 return {
-                                    statusCode: 200, headers: CORS,
+                                    statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                                     body: JSON.stringify({
                                         images: results, url: results[0].url,
                                         meta: { 
@@ -543,7 +538,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                                 const base64 = data?.predictions?.[0]?.bytesBase64Encoded;
                                 if (!base64) throw new Error("Imagen Vertex returned no image bytes.");
                                 return {
-                                    statusCode: 200, headers: CORS,
+                                    statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                                     body: JSON.stringify({
                                         url: `data:image/jpeg;base64,${base64}`,
                                         meta: { 
@@ -582,7 +577,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                             mimeType: 'image/jpeg'
                         }));
                         return {
-                            statusCode: 200, headers: CORS,
+                            statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                             body: JSON.stringify({
                                 images: results, url: results[0].url,
                                 meta: { modelUsed: `${modelId} (AI Studio REST)`, timestamp: new Date().toISOString(), sampleCount: results.length }
@@ -592,7 +587,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                         const imageBytes = images[0]?.image?.imageBytes;
                         if (!imageBytes) throw new Error("Imagen returned no image bytes via AI Studio REST.");
                         return {
-                            statusCode: 200, headers: CORS,
+                            statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                             body: JSON.stringify({
                                 url: `data:image/jpeg;base64,${imageBytes}`,
                                 meta: { modelUsed: `${modelId} (AI Studio REST)`, timestamp: new Date().toISOString() }
@@ -601,7 +596,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                     }
                 } catch (e: any) {
                     console.error("[MediaGen] IMAGE_GEN Error:", e.message);
-                    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "AI Generation Error", details: e.message, type: 'IMAGE_GEN' }) };
+                    return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "AI Generation Error", details: e.message, type: 'IMAGE_GEN' }) };
                 }
             }
 
@@ -676,12 +671,12 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                     if (!base64) throw new Error("Imagen Edit returned no image bytes.");
 
                     return {
-                        statusCode: 200, headers: { ...CORS, "Content-Type": "application/json" },
+                        statusCode: 200, headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "Content-Type": "application/json" },
                         body: JSON.stringify({ url: `data:image/jpeg;base64,${base64}`, meta: { modelUsed: 'imagen-3.0-capability-001 (Vertex AI - Edit)', timestamp: new Date().toISOString() } })
                     };
                 } catch (e: any) {
                     console.error("[MediaGen] IMAGE_EDIT Error:", e.message);
-                    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "AI Editing Error", details: e.message, type: 'IMAGE_EDIT' }) };
+                    return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "AI Editing Error", details: e.message, type: 'IMAGE_EDIT' }) };
                 }
             }
 
@@ -732,7 +727,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                     if (!base64) throw new Error("Imagen Product Master returned no image bytes.");
 
                     return {
-                        statusCode: 200, headers: CORS,
+                        statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                         body: JSON.stringify({ 
                             url: `data:image/jpeg;base64,${base64}`, 
                             meta: { 
@@ -744,7 +739,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                     };
                 } catch (e: any) {
                     console.error("[MediaGen] PRODUCT_MASTER Error:", e.message);
-                    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "Product Mastering Error", details: e.message, type: 'PRODUCT_MASTER' }) };
+                    return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Product Mastering Error", details: e.message, type: 'PRODUCT_MASTER' }) };
                 }
             }
 
@@ -815,7 +810,7 @@ EJEMPLO DE SALIDA:
 
                     return {
                         statusCode: 200,
-                        headers: CORS,
+                        headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                         body: JSON.stringify({ 
                             captions: parsed.captions,
                             meta: { modelUsed: 'gemini-2.5-flash (Multimodal)', sourceType, timestamp: new Date().toISOString() } 
@@ -823,7 +818,7 @@ EJEMPLO DE SALIDA:
                     };
                 } catch (e: any) {
                     console.error("[MediaGen] TRANSCRIPTION Error:", e.message);
-                    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "Transcription Error", details: e.message, type: 'TRANSCRIPTION' }) };
+                    return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Transcription Error", details: e.message, type: 'TRANSCRIPTION' }) };
                 }
             }
 
@@ -853,7 +848,7 @@ EJEMPLO DE SALIDA:
                 try {
                     if (!vertexAvailable || !vertexProjectId) {
                         return {
-                            statusCode: 400, headers: CORS,
+                            statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                             body: JSON.stringify({
                                 error: "Video (Veo 3.0 / 3.1) requiere credenciales Vertex AI — no hay fallback posible con API key de AI Studio. " +
                                     "En Netlify > Site configuration > Environment variables, configura: " +
@@ -987,7 +982,7 @@ EJEMPLO DE SALIDA:
                         if (isSafety) {
                             return {
                                 statusCode: 400,
-                                headers: CORS,
+                                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                                 body: JSON.stringify({ 
                                     error: "CONTENT_POLICY_VIOLATION", 
                                     details: errText,
@@ -1002,7 +997,7 @@ EJEMPLO DE SALIDA:
                     console.log(`[MediaGen] Veo 3.1 operation started:`, JSON.stringify(veoData).substring(0, 200));
 
                     return {
-                        statusCode: 200, headers: CORS,
+                        statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                         body: JSON.stringify({ 
                             operationName: veoData.name, 
                             status: 'processing',
@@ -1021,7 +1016,7 @@ EJEMPLO DE SALIDA:
                     if (e.message?.toLowerCase().includes('usage guidelines') || e.message?.toLowerCase().includes('violate')) {
                         return {
                             statusCode: 400,
-                            headers: CORS,
+                            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                             body: JSON.stringify({ error: "CONTENT_POLICY_VIOLATION", details: e.message, type })
                         };
                     }
@@ -1086,7 +1081,7 @@ EJEMPLO DE SALIDA:
                             if (isSafety) {
                                 return {
                                     statusCode: 400,
-                                    headers: CORS,
+                                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                                     body: JSON.stringify({ 
                                         error: "CONTENT_POLICY_VIOLATION", 
                                         details: statusData.error.message || "Rejected by Vertex AI safety filters.",
@@ -1131,7 +1126,7 @@ EJEMPLO DE SALIDA:
                         }
 
                         return {
-                            statusCode: 200, headers: CORS,
+                            statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                             body: JSON.stringify({
                                 url: videoUrl,
                                 status: 'completed',
@@ -1140,7 +1135,7 @@ EJEMPLO DE SALIDA:
                         };
                     }
 
-                    return { statusCode: 200, headers: CORS, body: JSON.stringify({ status: 'processing' }) };
+                    return { statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ status: 'processing' }) };
                 } catch (e: any) {
                     console.error("[MediaGen] VIDEO_STATUS Error:", e.message);
                     throw e;
@@ -1151,7 +1146,7 @@ EJEMPLO DE SALIDA:
             case 'VIDEO_MASTER': {
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ 
                         success: true, 
                         message: "Video Mastering (Beta) initialized. This feature is currently in active development for V3.1.",
@@ -1164,7 +1159,7 @@ EJEMPLO DE SALIDA:
             case 'PROMPT_SANITIZE': {
                 const { prompt } = payload;
                 if (!prompt) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Missing prompt" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing prompt" }) };
                 }
 
                 try {
@@ -1179,7 +1174,7 @@ ${prompt}` }] }],
 
                     return {
                         statusCode: 200,
-                        headers: CORS,
+                        headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                         body: JSON.stringify({
                             text: sanitized,
                             isSanitized: true,
@@ -1188,14 +1183,14 @@ ${prompt}` }] }],
                     };
                 } catch (e: any) {
                     console.error("[MediaGen] PROMPT_SANITIZE Error:", e.message);
-                    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: e.message }) };
+                    return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: e.message }) };
                 }
             }
 
             case 'PROMPT_EXPAND': {
                 const { prompt, mediaType = 'VIDEO', context = {}, noEnrich = false } = payload;
                 if (!prompt) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Missing prompt" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing prompt" }) };
                 }
 
                 try {
@@ -1214,7 +1209,7 @@ ${prompt}` }] }],
 
                     return {
                         statusCode: 200,
-                        headers: CORS,
+                        headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                         body: JSON.stringify({ 
                             text: expandedText, 
                             isExpanded: expandedText !== prompt,
@@ -1224,7 +1219,7 @@ ${prompt}` }] }],
                     };
                 } catch (e: any) {
                     console.error("[MediaGen] PROMPT_EXPAND Error:", e.message);
-                    return { statusCode: 200, headers: CORS, body: JSON.stringify({ text: prompt, error: e.message }) };
+                    return { statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ text: prompt, error: e.message }) };
                 }
             }
 
@@ -1415,7 +1410,7 @@ JSON schema:
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({
                         url: `data:audio/wav;base64,${wavBase64}`,
                         meta: { 
@@ -1640,7 +1635,7 @@ ${text.slice(0, 6000)}`;
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({
                         text,
                         thinking,
@@ -1723,7 +1718,7 @@ REGLA: Responde en ${lang === 'es' ? 'Español' : 'English'}, pero mantén los t
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ 
                         text, 
                         thinking, 
@@ -1740,7 +1735,7 @@ REGLA: Responde en ${lang === 'es' ? 'Español' : 'English'}, pero mantén los t
             case 'BRAND_PDF_ANALYZE': {
                 const { pdfBase64, language: lang = 'es' } = payload;
                 if (!pdfBase64) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "No PDF data provided" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "No PDF data provided" }) };
                 }
 
                 const cleanPdf = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
@@ -1807,7 +1802,7 @@ Si un dato no es explícito, infiéretelo inteligentemente basándote en el cont
                     
                     return {
                         statusCode: 200,
-                        headers: CORS,
+                        headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                         body: JSON.stringify({ 
                             brandData, 
                             type: 'brand_pdf',
@@ -1821,7 +1816,7 @@ Si un dato no es explícito, infiéretelo inteligentemente basándote en el cont
                     console.error("[MediaGen] BRAND_PDF_ANALYZE AI error:", aiErr.message);
                     return { 
                         statusCode: 500, 
-                        headers: CORS, 
+                        headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
                         body: JSON.stringify({ error: `AI extraction failed: ${aiErr.message}` }) 
                     };
                 }
@@ -1870,7 +1865,7 @@ Required JSON schema (all fields mandatory):
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ 
                         voiceProfile, 
                         type: 'voice_analyze',
@@ -1882,7 +1877,7 @@ Required JSON schema (all fields mandatory):
             case 'AUDIO_SCRIPT_GEN': {
                 const { prompt: userBrief, brandContext } = payload;
                 if (!userBrief) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Missing prompt" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing prompt" }) };
                 }
 
                 const brandSection = brandContext
@@ -1922,12 +1917,12 @@ Return ONLY valid JSON (no markdown fences, no extra text) with this exact schem
                     script = JSON.parse(rawText);
                 } catch (e: any) {
                     console.error("[MediaGen] AUDIO_SCRIPT_GEN JSON parse error:", e.message);
-                    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "Failed to parse AI script response" }) };
+                    return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Failed to parse AI script response" }) };
                 }
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ script, type: 'audio_script_gen', meta: { modelUsed: 'gemini-2.5-flash' } })
                 };
             }
@@ -1952,7 +1947,7 @@ Return ONLY valid JSON (no markdown fences, no extra text) with this exact schem
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({
                         status: tokenStatus,
                         diag: {
@@ -1972,16 +1967,16 @@ Return ONLY valid JSON (no markdown fences, no extra text) with this exact schem
             case 'URL_EXTRACT': {
                 const { url: targetUrl } = payload;
                 if (!targetUrl) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Missing url" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing url" }) };
                 }
 
                 // Validate URL
                 let parsedUrl: URL;
                 try { parsedUrl = new URL(targetUrl); } catch {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "URL inválida. Asegúrate de incluir https://" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "URL inválida. Asegúrate de incluir https://" }) };
                 }
                 if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Solo se permiten URLs http/https" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Solo se permiten URLs http/https" }) };
                 }
 
                 // Fetch the page server-side (no CORS issues from Netlify)
@@ -2002,20 +1997,20 @@ Return ONLY valid JSON (no markdown fences, no extra text) with this exact schem
                         if (pageResp.status === 401 || pageResp.status === 403) {
                             return { 
                                 statusCode: 422, 
-                                headers: CORS, 
+                                headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
                                 body: JSON.stringify({ error: "Esta URL está protegida, requiere inicio de sesión o tiene acceso restringido." }) 
                             };
                         }
                         if (pageResp.status === 404) {
                             return { 
                                 statusCode: 422, 
-                                headers: CORS, 
+                                headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
                                 body: JSON.stringify({ error: "La página no fue encontrada (Error 404). Verifica que la URL sea correcta." }) 
                             };
                         }
                         return { 
                             statusCode: 422, 
-                            headers: CORS, 
+                            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
                             body: JSON.stringify({ error: `No se pudo acceder a la página (Error HTTP ${pageResp.status})` }) 
                         };
                     }
@@ -2025,7 +2020,7 @@ Return ONLY valid JSON (no markdown fences, no extra text) with this exact schem
                     console.error(`[MediaGen] URL_EXTRACT: fetch error for ${targetUrl}:`, fetchErr.message);
                     return { 
                         statusCode: 422, 
-                        headers: CORS, 
+                        headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
                         body: JSON.stringify({ 
                             error: isTimeout 
                                 ? "La conexión con el sitio web tardó demasiado. Intenta con una URL más rápida o verifica que el sitio esté activo." 
@@ -2077,7 +2072,7 @@ Return ONLY valid JSON (no markdown fences, no extra text) with this exact schem
 
                 if (pageText.length < 30) {
                     console.warn(`[URL_EXTRACT] Insufficient content for: ${targetUrl}`);
-                    return { statusCode: 422, headers: CORS, body: JSON.stringify({ error: "La página no devolvió contenido analizable. Es posible que sea una app cerrada, requiera autenticación o bloquee bots." }) };
+                    return { statusCode: 422, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "La página no devolvió contenido analizable. Es posible que sea una app cerrada, requiera autenticación o bloquee bots." }) };
                 }
 
 
@@ -2122,12 +2117,12 @@ ESQUEMA JSON:
                     extracted = JSON.parse(rawText);
                 } catch (e: any) {
                     console.error("[MediaGen] URL_EXTRACT JSON parse error:", e.message);
-                    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "Error al interpretar la respuesta de Gemini" }) };
+                    return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Error al interpretar la respuesta de Gemini" }) };
                 }
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ ...extracted, type: 'url_extract', meta: { modelUsed: 'gemini-2.5-flash', sourceUrl: targetUrl } })
                 };
             }
@@ -2135,7 +2130,7 @@ ESQUEMA JSON:
             case 'VOICEOVER_SAVE': {
                 const { userId, voiceLabel, scriptText, audioUrl, provider } = payload;
                 if (!userId || !audioUrl) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "userId and audioUrl are required" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "userId and audioUrl are required" }) };
                 }
 
                 const expiresAt = new Date();
@@ -2149,7 +2144,7 @@ ESQUEMA JSON:
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ success: true, id: result[0].id, expiresAt: expiresAt.toISOString() })
                 };
             }
@@ -2157,7 +2152,7 @@ ESQUEMA JSON:
             case 'PLAN_SEGMENTS': {
                 const { prompt, totalDuration } = payload;
                 if (!prompt) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "prompt is required" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "prompt is required" }) };
                 }
 
                 const targetDuration = totalDuration || 15;
@@ -2203,12 +2198,12 @@ FORMATO DE RESPUESTA (JSON ÚNICAMENTE):
                     plan = JSON.parse(rawText);
                 } catch (e: any) {
                     console.error("[MediaGen] PLAN_SEGMENTS JSON parse error:", e.message);
-                    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "Error al planificar segmentos" }) };
+                    return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Error al planificar segmentos" }) };
                 }
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ ...plan, type: 'segment_plan' })
                 };
             }
@@ -2216,7 +2211,7 @@ FORMATO DE RESPUESTA (JSON ÚNICAMENTE):
             case 'VOICEOVER_LIST': {
                 const { userId } = payload;
                 if (!userId) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "userId is required" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "userId is required" }) };
                 }
 
                 const list = await runQuery(async (sql) =>
@@ -2229,13 +2224,13 @@ FORMATO DE RESPUESTA (JSON ÚNICAMENTE):
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify(list)
                 };
             }
 
             default:
-                return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: `Unknown type: ${type}` }) };
+                return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: `Unknown type: ${type}` }) };
         }
 
     } catch (err: any) {
@@ -2263,7 +2258,7 @@ FORMATO DE RESPUESTA (JSON ÚNICAMENTE):
             console.error(`[MediaGen] ⚠️ Credential error on type=${type}: ${err.message}`);
             return {
                 statusCode: 401,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({
                     error: 'CREDENTIAL_ERROR',
                     details: 'Las credenciales de IA están vencidas o son inválidas. Por favor, renueva la API Key de Gemini en Google AI Studio y actualiza la variable de entorno en Netlify.',
@@ -2280,7 +2275,7 @@ FORMATO DE RESPUESTA (JSON ÚNICAMENTE):
         
         return { 
             statusCode: isSafety ? 400 : 500, 
-            headers: CORS, 
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
             body: JSON.stringify({ 
                 error: isSafety ? "CONTENT_POLICY_VIOLATION" : "AI Media Generator Error", 
                 details: err.message,

@@ -1,25 +1,19 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 import { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 
 const DB_URL =
   process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || "";
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Content-Type": "application/json",
-};
-
 const jsonResponse = (statusCode: number, body: unknown) => ({
   statusCode,
-  headers: CORS,
+  headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
   body: JSON.stringify(body),
 });
 
 const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod === "OPTIONS")
-    return { statusCode: 204, headers: CORS, body: "" };
+    return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
 
   // DB initialization is handled by runQuery
 

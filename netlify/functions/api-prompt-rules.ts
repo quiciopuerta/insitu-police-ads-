@@ -1,3 +1,5 @@
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
+import { getCorsHeaders } from "./_lib/corsHelper";
 import { Handler } from '@netlify/functions';
 import { runQuery, DEFAULT_SETTINGS } from './_lib/db';
 
@@ -17,7 +19,7 @@ export const handler: Handler = async (event) => {
     }
 
     // ── IDENTITY VERIFICATION ─────────────────────────────────────────────
-    const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || event.headers["Authorization"]?.replace('Bearer ', '') || "";
+    const userId = getUserIdFromHeaders(event.headers);
     if (!userId) {
         return { statusCode: 401, headers, body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
     }

@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 import { Handler } from '@netlify/functions';
 import { runQuery } from './_lib/db';
 import { getGeminiKey, callGeminiApi } from './_lib/gemini';

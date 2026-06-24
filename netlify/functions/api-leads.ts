@@ -1,3 +1,4 @@
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { getCorsHeaders } from "./_lib/corsHelper";
@@ -21,7 +22,7 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     // Auth logic (similar to other admin functions)
     const authHeader = event.headers["authorization"] || event.headers["Authorization"] || "";
-    const xUserId = event.headers["x-user-id"] || event.headers["X-User-Id"] || "";
+    const xUserId = getUserIdFromHeaders(event.headers);
     
     let isAuthorized = ADMIN_SECRET !== "" && authHeader === `Bearer ${ADMIN_SECRET}`;
     let callerRole = "";

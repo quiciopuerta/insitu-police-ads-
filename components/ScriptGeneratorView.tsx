@@ -100,15 +100,17 @@ const ScriptGeneratorView: React.FC<ScriptGeneratorViewProps> = ({ language }) =
       const conversions = conversionsIdx >= 0 ? parseInt(values[conversionsIdx]) : parseInt(values[3]) || 0;
       const cost = costIdx >= 0 ? parseFloat(values[costIdx]) : parseFloat(values[4]) || 0;
 
-      if (campaignMap.has(campaignName)) {
-        const existing = campaignMap.get(campaignName)!;
+      const groupKey = campaignName.trim().toLowerCase();
+
+      if (campaignMap.has(groupKey)) {
+        const existing = campaignMap.get(groupKey)!;
         existing.impressions += impressions;
         existing.clicks += clicks;
         existing.conversions += conversions;
         existing.cost += cost;
       } else {
-        campaignMap.set(campaignName, {
-          name: campaignName,
+        campaignMap.set(groupKey, {
+          name: campaignName.trim(),
           impressions,
           clicks,
           conversions,

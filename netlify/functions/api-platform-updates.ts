@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 /**
  * api-platform-updates.ts — Netlify Function
  * WOW Notifications & Release Intelligence Hub Logic
@@ -19,16 +20,9 @@ import { runMigrations } from "./_lib/migrations";
 import { sendPlatformUpdateEmail } from "./_lib/mailService";
 import type { PlatformUpdate, PlatformUpdateRead } from "../../types";
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: CORS,
+    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
     body: JSON.stringify(body),
 });
 
@@ -59,7 +53,7 @@ function isAdminAuth(authHeader: string | null | undefined): boolean {
 let migrationsRan = false;
 
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
 
     if (!migrationsRan) {
         await runMigrations().catch(err => console.error("[UPDATES] Migrations failed:", err));

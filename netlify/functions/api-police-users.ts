@@ -1,3 +1,5 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { safeError } from "./_lib/errorHandler";
@@ -11,23 +13,16 @@ function hashPassword(plain: string): string {
     return `scrypt:${salt}:${hash}`;
 }
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: CORS,
+    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
     body: JSON.stringify(body),
 });
 
 let migrationsRan = false;
 
 export const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
 
     if (!migrationsRan) {
         await runMigrations().catch(err => console.error("[POLICE-USERS] Migrations failed:", err));
@@ -35,7 +30,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
     }
 
     const authHeader = event.headers['authorization'] || event.headers['Authorization'] || '';
-    const callerUserId = event.headers['x-user-id'] || event.headers['X-User-Id'] || authHeader.replace('Bearer ', '') || '';
+    const callerUserId = getUserIdFromHeaders(event.headers);
     if (!callerUserId) return json(401, { error: "Unauthorized" });
 
     try {

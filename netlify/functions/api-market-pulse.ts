@@ -1,14 +1,9 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import { Handler } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { runMigrations } from "./_lib/migrations"; // Static import for better bundling
 import { getGeminiKey, VISION_MODEL, callGeminiApi } from "./_lib/gemini";
-
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id, x-admin-secret",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
 
 /**
  * api-market-pulse.ts
@@ -17,14 +12,14 @@ const CORS = {
  * Runs monthly or on-demand by admin.
  */
 export const handler: Handler = async (event) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin) };
     
     // Auth Check: Standardized for Admin/SuperAdmin roles via X-User-Id
     // Consistent with api-history and other Admin modules
-    const xUserId = event.headers['x-user-id'] || event.headers['X-User-Id'] || '';
+    const xUserId = getUserIdFromHeaders(event.headers);
     if (!xUserId) {
         console.error("[api-market-pulse] Authentication Failed: Missing X-User-Id header");
-        return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Missing authorization (X-User-Id)" }) };
+        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing authorization (X-User-Id)" }) };
     }
 
     try {
@@ -37,7 +32,7 @@ export const handler: Handler = async (event) => {
                         (callerRoles[0]?.role === 'superAdmin' || callerRoles[0]?.role === 'admin');
 
         if (!isAdmin) {
-            return { statusCode: 403, headers: CORS, body: JSON.stringify({ error: "Forbidden: Admin access required" }) };
+            return { statusCode: 403, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Forbidden: Admin access required" }) };
         }
 
         let gemini;
@@ -45,7 +40,7 @@ export const handler: Handler = async (event) => {
             gemini = getGeminiKey();
         } catch (authErr: any) {
             console.error("[api-market-pulse] Key error:", authErr.message);
-            return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "Configuración de IA incompleta (Gemini Key missing)", details: authErr.message }) };
+            return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Configuración de IA incompleta (Gemini Key missing)", details: authErr.message }) };
         }
 
         // 1. Fetch high-relevance signals from the last 30 days
@@ -67,7 +62,7 @@ export const handler: Handler = async (event) => {
             // Don't crash 500 if the table doesn't exist yet, just stop pulse.
             return { 
                 statusCode: 200, 
-                headers: CORS, 
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
                 body: JSON.stringify({ message: "Database not ready for Pulse (signals table missing).", details: dbErr.message }) 
             };
         }
@@ -75,7 +70,7 @@ export const handler: Handler = async (event) => {
         if (!signals || signals.length === 0) {
             return { 
                 statusCode: 200, 
-                headers: CORS, 
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
                 body: JSON.stringify({ message: "No se encontraron señales de competidores suficientes (score > 80) para generar un Pulse semanal." }) 
             };
         }
@@ -148,7 +143,7 @@ export const handler: Handler = async (event) => {
             console.error("[api-market-pulse] Gemini execution or parse failed:", parseErr.message);
             return { 
                 statusCode: 500, 
-                headers: CORS, 
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
                 body: JSON.stringify({ 
                     error: "Format Error", 
                     message: "La IA no entregó un formato de inteligencia de mercado válido.",
@@ -158,7 +153,7 @@ export const handler: Handler = async (event) => {
         }
 
         if (!pulseData || !pulseData.trends) {
-            return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "Gemini failed to output structured pulse data" }) };
+            return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Gemini failed to output structured pulse data" }) };
         }
 
         // 3. Update AI Prompt Rules
@@ -201,7 +196,7 @@ export const handler: Handler = async (event) => {
 
         return {
             statusCode: 200,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({ 
                 success: true, 
                 pulseId: insertedRuleId,
@@ -215,7 +210,7 @@ export const handler: Handler = async (event) => {
         console.error("[api-market-pulse] Fatal Error:", e.message, e.stack);
         return { 
             statusCode: 500, 
-            headers: CORS, 
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
             body: JSON.stringify({ error: "Internal Server Error", message: e.message, debug: e.stack }) 
         };
     }

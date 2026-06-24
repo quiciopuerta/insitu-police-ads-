@@ -243,7 +243,7 @@ export const CampaignsAIForecastUploader: React.FC<CampaignsAIForecastUploaderPr
               className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 font-bold transition-all disabled:opacity-50 shadow-lg shadow-green-500/20"
             >
               {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              {uploading ? 'Guardando...' : \`Confirmar y Subir \${preview.length}\`}
+              {uploading ? 'Guardando...' : `Confirmar y Subir ${preview.length}`}
             </button>
           </div>
         </div>

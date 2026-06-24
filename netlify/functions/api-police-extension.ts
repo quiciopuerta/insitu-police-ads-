@@ -1,16 +1,10 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { safeError } from "./_lib/errorHandler";
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: CORS,
+    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
     body: JSON.stringify(body),
 });
 
@@ -18,7 +12,7 @@ const EXTENSION_VERSION = '1.0.0';
 const LATEST_VERSION = '1.1.0';
 
 export const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
 
     try {
         const pathSegments = event.path.split('/');

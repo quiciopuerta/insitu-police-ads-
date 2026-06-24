@@ -177,8 +177,9 @@ export const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ language, sele
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         setRetryCount(attempt);
+        const topPerformanceData = [...performanceData].sort((a, b) => b.cost - a.cost).slice(0, 8);
         const res = await scriptGenerationService.generateAdsScript({
-          brief, customerId: selectedAccount.id, realAccountData: performanceData.slice(0, 8),
+          brief, customerId: selectedAccount.id, realAccountData: topPerformanceData,
           configuration: { excludeBrandCampaigns: excludeBrand, executionMode: execMode, excludeConvertedKeywords: excludeConverted, cpcThreshold, budgetThreshold: budgetGuard }
         });
         setGeneratedScript(res.script_content); setDecisionReport(res.decisionReport); setSafetyAlerts(res.safetyAlerts);
@@ -420,6 +421,16 @@ export const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ language, sele
                     <div>
                       <span style={{ color: '#d97706', fontSize: '11px' }}>{warning.text}</span>
                       <span style={{ color: textDim, fontSize: '10px', marginLeft: '8px' }}>[{L('Rev.', 'Rev.')} {warning.interval}]</span>
+                    </div>
+                  </div>
+                )}
+                {performanceData.length > 8 && (
+                  <div style={{ marginTop: '6px', background: '#0e1525', border: `1px solid #1e3a8a`, borderRadius: '3px', padding: '5px 10px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                    <span style={{ color: sky, fontSize: '11px', flexShrink: 0, marginTop: '1px' }}>ℹ</span>
+                    <div>
+                      <span style={{ color: sky, fontSize: '11px' }}>
+                        {L(`Analizando el top 8 de ${performanceData.length} campañas por gasto para el contexto de la IA.`, `Analyzing top 8 of ${performanceData.length} campaigns by cost for AI context.`)}
+                      </span>
                     </div>
                   </div>
                 )}

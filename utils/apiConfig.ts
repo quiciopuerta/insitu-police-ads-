@@ -62,6 +62,7 @@ export const buildAbsoluteUrl = (path: string): string => {
 // Reading from localStorage directly avoids circular dependencies with userService.
 export function adminFetch(url: string, options: RequestInit = {}): Promise<Response> {
     let userId = "";
+    let authToken = "";
     try {
         const session = localStorage.getItem("insitu_active_session");
         if (session) {
@@ -69,12 +70,14 @@ export function adminFetch(url: string, options: RequestInit = {}): Promise<Resp
             // Defensively check for nested object or top level id
             userId = parsedSession?.id || parsedSession?.user?.id || "";
         }
+        authToken = localStorage.getItem("insitu_auth_token") || "";
     } catch { /* ignore */ }
 
     const headers: Record<string, string> = {
         "Content-Type": "application/json",
         ...(options.headers as Record<string, string>),
-        ...(userId ? { "X-User-Id": userId } : {}),
+        ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
+        ...(userId ? { "X-User-Id": userId } : {}), // Kept for legacy compatibility during migration
     };
     
     // Debug logging for local development or when experiencing auth issues

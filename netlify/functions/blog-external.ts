@@ -1,11 +1,5 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
-
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Content-Type": "application/json",
-};
 
 const SOURCE_BASE = 'https://maxi.franklinsanchez.com';
 const WP_API = `${SOURCE_BASE}/wp-json/wp/v2`;
@@ -93,7 +87,7 @@ function adaptContent(html: string): string {
 const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     // 1. Handle CORS Preflight
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: CORS, body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     }
 
     // 2. Handle DELETE (Mocking for now, as we'd need a DB to persist "hidden" state)
@@ -103,7 +97,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
         console.log(`[Blog-External] Request to hide/delete external post: ${id}`);
         return {
             statusCode: 200,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({ success: true, message: `Post ${id} marked for deletion (simulated)` }),
         };
     }
@@ -157,7 +151,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
         if (wpPosts.length === 0) {
             return {
                 statusCode: 200,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify([]),
             };
         }
@@ -203,13 +197,13 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
 
         return {
             statusCode: 200,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify(posts),
         };
     } catch (err: any) {
         return {
             statusCode: 500,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({ error: err.message }),
         };
     }

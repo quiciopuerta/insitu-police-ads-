@@ -22,6 +22,7 @@ import { scryptSync, randomBytes, randomUUID, randomInt, timingSafeEqual } from 
 import { checkRateLimit, getClientIp } from "./_lib/rateLimiter";
 import { validateBody, LoginSchema, RegisterSchema, RecoverySchema, ResetPasswordSchema } from "./_lib/validators";
 import { validateTurnstile } from "./_lib/turnstile";
+import { signToken } from "./_lib/authMiddleware";
 
 // ── Password hashing (scrypt, Node built-in, no extra deps) ────────────────
 // Format stored: "scrypt:<salt_hex>:<hash_hex>"
@@ -166,7 +167,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
                 const adminRows = await runQuery(async (sql) => await sql`SELECT * FROM users WHERE role = 'superAdmin' LIMIT 1`);
                 if (adminRows && adminRows.length) {
                     const baseUser = hydrateUser(adminRows[0]);
-                    return json(200, { user: baseUser });
+                    return json(200, { user: baseUser, token: signToken({ id: baseUser.id, role: baseUser.role }) });
                 } else {
                     return json(401, { error: "No superAdmin user configured in database" });
                 }
@@ -207,7 +208,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             if (needsRehash) {
                 await runQuery(async (sql) => await sql`UPDATE users SET password = ${hashPassword(password)} WHERE id = ${user.id}`);
             }
-            return json(200, { user });
+            return json(200, { user, token: signToken({ id: user.id, role: user.role }) });
         }
 
         // ── POST /register ─────────────────────────────────────────────────────
@@ -401,7 +402,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             if (accessToken) {
                 user.linkedGoogleAds = { name, email, picture, accessToken, method: "oauth" };
             }
-            return json(200, { user });
+            return json(200, { user, token: signToken({ id: user.id, role: user.role }) });
         }
 
         // ── POST /recovery ──────────────────────────────────────────────────────

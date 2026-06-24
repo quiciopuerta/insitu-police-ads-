@@ -1,22 +1,17 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { checkRateLimit, getClientIp } from "./_lib/rateLimiter";
 import { runQuery } from "./_lib/db";
 import { callGeminiApi } from "./_lib/gemini";
 import crypto from "crypto";
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: CORS, body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     }
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: "Method not allowed" }) };
+        return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
     try {
@@ -28,14 +23,14 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
         if (!rateLimit.success) {
             return {
                 statusCode: 429,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({ error: "Too many requests" })
             };
         }
 
         // Authentication
         // Headers are case-insensitive in HTTP, but Node converts them to lowercase
-        const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || event.headers["authorization"]?.replace('Bearer ', '') || "";
+        const userId = getUserIdFromHeaders(event.headers);
 
         console.log("[api-generate-ads-script] Authentication check:", {
             received_headers: Object.keys(event.headers),
@@ -47,7 +42,7 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
             console.error("[api-generate-ads-script] Missing user ID in headers. Available headers:", Object.keys(event.headers));
             return {
                 statusCode: 401,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({ error: "User not authenticated. Please sign in first." })
             };
         }
@@ -68,13 +63,13 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
             console.error("[api-generate-ads-script] User not found in DB:", userId);
             return {
                 statusCode: 401,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({ error: "User account not found." })
             };
         }
 
         if (!brief) {
-            return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Missing brief parameter" }) };
+            return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing brief parameter" }) };
         }
 
         // Gemini Prompt Construction
@@ -152,7 +147,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
             if (geminiError.isCredentialError) {
                 return {
                     statusCode: 401,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({
                         error: "API configuration error. Contact support.",
                         details: process.env.NODE_ENV === 'development' ? geminiError.message : undefined
@@ -164,7 +159,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
             if (geminiError.isTimeout) {
                 return {
                     statusCode: 504,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({
                         error: "AI service timeout. Try again with a simpler request.",
                         details: process.env.NODE_ENV === 'development' ? geminiError.message : undefined
@@ -175,7 +170,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
             // Everything else (429, 5xx, network) = service unavailable
             return {
                 statusCode: 503,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({
                     error: "AI service temporarily unavailable. Please try again in a few moments.",
                     details: process.env.NODE_ENV === 'development' ? {
@@ -195,7 +190,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
             });
             return {
                 statusCode: 503,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({
                     error: "AI service returned empty response. Please try again.",
                     details: process.env.NODE_ENV === 'development' ? JSON.stringify(aiResponseData?.candidates?.[0]) : undefined
@@ -218,8 +213,8 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
         const instructions = extractTag(aiText, "[INSTRUCTIONS]", "[/INSTRUCTIONS]");
 
         // Parse clean script code from block
-        const codeMatch = scriptRaw.match(/```(?:javascript|js)\n([\s\S]*?)```/) || [null, scriptRaw];
-        const scriptContent = codeMatch[1] ? codeMatch[1].trim() : (scriptRaw || aiText.match(/```(?:javascript|js)\n([\s\S]*?)```/)?.[1] || "// Error de parseo");
+        const codeMatch = scriptRaw.match(/```(?:javascript|js)?\n([\s\S]*?)```/) || [null, scriptRaw.trim()];
+        const scriptContent = codeMatch[1] ? codeMatch[1].trim() : (scriptRaw.trim() || aiText.match(/```(?:javascript|js)?\n([\s\S]*?)```/)?.[1]?.trim() || "// Error de parseo: No se pudo extraer el código del script.");
         
         const finalReport = decisionReport || "Análisis completado basado en el brief.";
         const finalAlerts = safetyAlerts || "No se detectaron alertas críticas inmediatas.";
@@ -241,7 +236,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
 
         return {
             statusCode: 200,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({
                 id: scriptId,
                 script_content: scriptContent,
@@ -263,7 +258,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
         if (error.message?.includes('ECONNREFUSED') || error.message?.includes('ENOTFOUND')) {
             return {
                 statusCode: 503,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({
                     error: "Service temporarily unavailable. Database or API connection failed.",
                     details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -273,7 +268,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
 
         return {
             statusCode: 500,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({
                 error: "Unexpected error while generating script. Please try again.",
                 details: process.env.NODE_ENV === 'development' ? error.message : undefined

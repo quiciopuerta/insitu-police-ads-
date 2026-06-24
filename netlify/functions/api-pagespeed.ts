@@ -1,14 +1,8 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 import { Handler } from "@netlify/functions";
 import { callGemini } from "./_lib/ai";
 import { runQuery } from "./_lib/db";
 import { runMigrations } from "./_lib/migrations";
-
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Content-Type": "application/json",
-};
 
 /**
  * Key Rotation: Choose a random key from available PageSpeed keys
@@ -24,15 +18,15 @@ const getPageSpeedKey = () => {
 };
 
 export const handler: Handler = async (event) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
-    if (event.httpMethod !== "GET") return { statusCode: 405, headers: CORS, body: "Method Not Allowed" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    if (event.httpMethod !== "GET") return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "Method Not Allowed" };
 
     const url = event.queryStringParameters?.url;
     const strategy = event.queryStringParameters?.strategy || "desktop";
     const forceRefresh = event.queryStringParameters?.refresh === "true";
     
     if (!url) {
-        return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Missing required parameter: url" }) };
+        return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing required parameter: url" }) };
     }
     
     try {
@@ -51,7 +45,7 @@ export const handler: Handler = async (event) => {
                 console.log(`[PageSpeed] Serving from cache: ${url} (${strategy})`);
                 return {
                     statusCode: 200,
-                    headers: { ...CORS, "X-Cache": "HIT" },
+                    headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "X-Cache": "HIT" },
                     body: JSON.stringify(cached[0].data)
                 };
             }
@@ -118,7 +112,7 @@ ${JSON.stringify(criticalAudits, null, 2)}`;
 
         return {
             statusCode: 200,
-            headers: { ...CORS, "X-Cache": "MISS" },
+            headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "X-Cache": "MISS" },
             body: JSON.stringify(finalResult)
         };
 
@@ -130,7 +124,7 @@ ${JSON.stringify(criticalAudits, null, 2)}`;
         
         return { 
             statusCode: status, 
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify(errBody) 
         };
     }

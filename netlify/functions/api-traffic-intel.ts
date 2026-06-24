@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 /**
  * Netlify Function: api-traffic-intel
  * =====================================
@@ -12,16 +13,9 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { fetchTavilyTrafficData, fetchSerperTrafficData } from "./_lib/realDataService";
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 export const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
-    if (event.httpMethod !== "POST") return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: "Method not allowed" }) };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    if (event.httpMethod !== "POST") return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
 
     let domain = "";
     let competitors: string[] = [];
@@ -33,10 +27,10 @@ export const handler: Handler = async (event: HandlerEvent) => {
             d.trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "")
         ).filter(Boolean).slice(0, 5);
     } catch {
-        return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid JSON" }) };
+        return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Invalid JSON" }) };
     }
 
-    if (!domain) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "domain is required" }) };
+    if (!domain) return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "domain is required" }) };
 
     // Fetch main domain + up to 5 competitors in parallel
     const domainsToFetch = [domain, ...competitors];
@@ -61,7 +55,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
     return {
         statusCode: 200,
-        headers: CORS,
+        headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
         body: JSON.stringify({ trafficData }),
     };
 };

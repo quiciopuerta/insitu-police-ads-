@@ -1,3 +1,5 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { Type } from "@google/genai";
@@ -6,13 +8,6 @@ import { safeError, logError } from "./_lib/errorHandler";
 import { runQuery } from "./_lib/db";
 import { checkRateLimit, getClientIp } from "./_lib/rateLimiter";
 import { getGeminiKey as _getGeminiKey, callGeminiApi } from "./_lib/gemini";
-
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
 
 const getGeminiKey = (): string => _getGeminiKey().key;
 
@@ -168,23 +163,23 @@ let seoHistoryInitialized = false;
 const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     // ── CORS preflight ─────────────────────────────────────────────────────────
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: CORS, body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     }
 
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: "Method not allowed" }) };
+        return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
     const clientIp = getClientIp(event);
     const rateLimit = await checkRateLimit(clientIp, { windowMs: 60000, max: 10 });
     if (!rateLimit.success) {
-        return { statusCode: 429, headers: CORS, body: JSON.stringify({ error: "Rate limit exceeded. Try again later." }) };
+        return { statusCode: 429, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Rate limit exceeded. Try again later." }) };
     }
 
     // Authentication
-    const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || event.headers["Authorization"]?.replace('Bearer ', '') || "";
+    const userId = getUserIdFromHeaders(event.headers);
     if (!userId) {
-        return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
+        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
     }
 
     const userExists = await runQuery(async (sql) => {
@@ -193,7 +188,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     });
 
     if (!userExists) {
-        return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
+        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
     }
 
     let domain = "";
@@ -220,18 +215,18 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
             .trim();
         // Validate domain format: alphanumeric, dots, hyphens only
         if (!/^[a-z0-9]([a-z0-9-\.]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/.test(domain)) {
-            return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid domain format" }) };
+            return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Invalid domain format" }) };
         }
         country = bodyCountry;
         language = bodyLanguage;
         period = bodyPeriod;
         refresh = !!forceRefresh;
     } catch {
-        return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid JSON body" }) };
+        return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Invalid JSON body" }) };
     }
 
     if (!domain) {
-        return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "domain is required" }) };
+        return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "domain is required" }) };
     }
 
     try {
@@ -269,7 +264,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                 // and consistent Capa 3 logic.
                 applyConsistentNormalization(cached, {}); 
                 
-                return { statusCode: 200, headers: CORS, body: JSON.stringify(cached) };
+                return { statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify(cached) };
             }
         }
 
@@ -662,7 +657,7 @@ INSTRUCCIONES DE CONVERSIÓN — CRÍTICO, LEE ANTES DE ESCRIBIR EL JSON:
 
         return {
             statusCode: 200,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify(result),
         };
     } catch (err: unknown) {
@@ -670,7 +665,7 @@ INSTRUCCIONES DE CONVERSIÓN — CRÍTICO, LEE ANTES DE ESCRIBIR EL JSON:
         console.error("[api-analyze-traffic] Error:", message);
         return {
             statusCode: 500,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({ error: safeError(err, process.env.NODE_ENV === "development") }),
         };
     }

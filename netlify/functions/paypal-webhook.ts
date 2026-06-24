@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { sendEmail, renewalEmail, paymentFailedEmail, canceledEmail } from "./_lib/mailService";
@@ -12,21 +13,14 @@ function safeJson(val: unknown, fallback: unknown): any {
     catch { return fallback; }
 }
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: CORS,
+    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
     body: JSON.stringify(body),
 });
 
 const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
     // DB initialization is handled by runQuery
     const body = event.body ? JSON.parse(event.body) : {};

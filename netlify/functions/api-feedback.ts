@@ -1,17 +1,12 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { safeError, logError } from "./_lib/errorHandler";
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Content-Type": "application/json",
-};
-
 const jsonResponse = (statusCode: number, body: unknown) => ({
   statusCode,
-  headers: CORS,
+  headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
   body: JSON.stringify(body),
 });
 
@@ -28,10 +23,10 @@ const REASON_TO_RULE: Record<string, string> = {
 
 const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod === "OPTIONS")
-    return { statusCode: 204, headers: CORS, body: "" };
+    return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
 
   // ── IDENTITY VERIFICATION ─────────────────────────────────────────────
-  const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || event.headers["Authorization"]?.replace('Bearer ', '') || "";
+  const userId = getUserIdFromHeaders(event.headers);
   if (!userId) {
     return jsonResponse(401, { error: "Unauthorized: Missing identity" });
   }

@@ -1,3 +1,5 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 /**
  * Netlify Function: api-google-ads
  * =================================
@@ -18,13 +20,6 @@ import { checkRateLimit, getClientIp } from "./_lib/rateLimiter";
 import { safeError, logError } from "./_lib/errorHandler";
 import { callGeminiApi } from './_lib/gemini';
 import { runQuery } from './_lib/db';
-
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
 
 const DEV_TOKEN = process.env.GOOGLE_ADS_DEV_TOKEN || "";
 const GOOGLE_ADS_BASE = "https://googleads.googleapis.com/v23";
@@ -306,17 +301,17 @@ const getSearchConsoleData = async (
 // ─── Main handler ──────────────────────────────────────────────────────────────
 const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: CORS, body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     }
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: "Method not allowed" }) };
+        return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
     let body: Record<string, any> = {};
     try {
         body = JSON.parse(event.body || "{}");
     } catch {
-        return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid JSON" }) };
+        return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Invalid JSON" }) };
     }
 
     const clientIp = getClientIp(event);
@@ -324,15 +319,15 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     if (!rateLimit.success) {
         return { 
             statusCode: 429, 
-            headers: CORS, 
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
             body: JSON.stringify({ error: "Too many requests. Please try again in a minute." }) 
         };
     }
 
     // Authentication
-    const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || event.headers["Authorization"]?.replace('Bearer ', '') || "";
+    const userId = getUserIdFromHeaders(event.headers);
     if (!userId) {
-        return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
+        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
     }
 
     const userExists = await runQuery(async (sql) => {
@@ -341,7 +336,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     });
 
     if (!userExists) {
-        return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
+        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
     }
 
     const { action, accessToken, period, siteUrl } = body;
@@ -350,7 +345,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     if (!DEV_TOKEN) {
         return { 
             statusCode: 503, 
-            headers: CORS, 
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
             body: JSON.stringify({ 
                 error: "[503] Google Ads Dev Token not configured.",
                 recommendation: "Configura la variable de entorno GOOGLE_ADS_DEV_TOKEN en el panel de Netlify o en tu archivo .env local.",
@@ -364,7 +359,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     if (!accessToken && action !== "ping" && action !== "search_audit" && !isInternalProxy) {
         return { 
             statusCode: 401, 
-            headers: CORS, 
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
             body: JSON.stringify({ 
                 error: "Token OAuth no encontrado. Debes vincular tu cuenta de Google Ads.",
                 type: "TOKEN_MISSING"
@@ -379,7 +374,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
         console.warn("[api-google-ads] accessToken does not look like a valid Google OAuth token.");
         return {
             statusCode: 401,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({ 
                 error: "El token de Google no es válido. Por favor, vuelve a vincular tu cuenta.",
                 type: "INVALID_TOKEN_FORMAT"
@@ -420,23 +415,23 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
 
             case "getCampaigns":
                 if (!cleanCustomerId || cleanCustomerId.length < 8) {
-                    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid customerId" }) };
+                    return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Invalid customerId" }) };
                 }
                 result = await getCampaigns(accessToken, cleanCustomerId, period);
                 break;
 
             case "getAuctionInsights":
-                if (!cleanCustomerId) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "customerId required" }) };
+                if (!cleanCustomerId) return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "customerId required" }) };
                 result = await getAuctionInsights(accessToken, cleanCustomerId, period);
                 break;
 
             case "getSearchConsoleData":
-                if (!siteUrl) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "siteUrl required" }) };
+                if (!siteUrl) return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "siteUrl required" }) };
                 result = await getSearchConsoleData(accessToken, siteUrl, period);
                 break;
 
             case "analyzeAnomalies": {
-                if (!cleanCustomerId) return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "customerId required" }) };
+                if (!cleanCustomerId) return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "customerId required" }) };
                 
                 // 1. Fetch Current vs Previous Metrics
                 const [current, previous, auction] = await Promise.all([
@@ -517,10 +512,10 @@ Usa Google Search para validar datos actuales.`;
             }
 
             default:
-                return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: `Unknown action: ${action}` }) };
+                return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: `Unknown action: ${action}` }) };
         }
 
-        return { statusCode: 200, headers: CORS, body: JSON.stringify(result) };
+        return { statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify(result) };
     } catch (err: any) {
         const status = err.status || 500;
         const message = err.message || "Internal Server Error";
@@ -531,7 +526,7 @@ Usa Google Search para validar datos actuales.`;
         if (status === 404) {
             return {
                 statusCode: 404,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({ 
                     error: `Cuenta no encontrada (${cleanCustomerId}). Verifica el ID.`,
                     details: message 
@@ -571,7 +566,7 @@ Usa Google Search para validar datos actuales.`;
                 console.error(`[api-google-ads] Google Ads Auth error: type=${errorType} reason=${reason}`);
                 return {
                     statusCode: status,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ 
                         error: "Problema de autenticación con Google Ads.",
                         details: message,
@@ -586,7 +581,7 @@ Usa Google Search para validar datos actuales.`;
                 console.error(`[api-google-ads] General Auth error: ${message}`);
                 return {
                     statusCode: status,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ 
                         error: "Error de autenticación en los servicios de IA.",
                         details: message,
@@ -598,7 +593,7 @@ Usa Google Search para validar datos actuales.`;
 
         return { 
             statusCode: status, 
-            headers: CORS, 
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
             body: JSON.stringify({ error: message }) 
         };
     }

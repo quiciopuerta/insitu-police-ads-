@@ -1,3 +1,5 @@
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
+import { getCorsHeaders } from "./_lib/corsHelper";
 import { Handler } from '@netlify/functions';
 import { runQuery } from './_lib/db';
 
@@ -34,7 +36,7 @@ export const handler: Handler = async (event) => {
             };
         }
 
-        const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || null;
+        const userId = getUserIdFromHeaders(event.headers);
         const safeTaskType = String(taskType).slice(0, 100);
         const safeDuration = Math.round(durationMs);
         const safeStatus = String(status || "unknown").slice(0, 50);

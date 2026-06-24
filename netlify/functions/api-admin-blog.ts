@@ -1,3 +1,5 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { safeError, logError } from "./_lib/errorHandler";
@@ -6,27 +8,20 @@ const DB_URL =
     process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || "";
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "";
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 const handler: Handler = async (
     event: HandlerEvent,
     _ctx: HandlerContext
 ) => {
     // ── CORS preflight ──────────────────────────────────────────────
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: CORS, body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     }
 
     // DB initialization is handled by runQuery
 
     // Auth: ADMIN_SECRET (scripts) OR admin userId (frontend)
     const authHeader = event.headers["authorization"] || event.headers["Authorization"] || event.headers["x-admin-key"] || "";
-    const xUserId = event.headers["x-user-id"] || event.headers["X-User-Id"] || "";
+    const xUserId = getUserIdFromHeaders(event.headers);
 
     // GET requests are PUBLIC to allow SEO pre-rendering and blog reading
     // Write/Delete methods still require ADMIN_SECRET or Admin role
@@ -50,7 +45,7 @@ const handler: Handler = async (
                              }).catch(() => false));
     if (!isAuthorized) {
         console.warn(`[ADMIN] 401 Unauthorized for path ${event.path}. UserUID: ${xUserId || 'Missing'}`);
-        return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized" }) };
+        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized" }) };
     }
 
     // Extract potential ID from path (e.g., /api/admin/blog/123)
@@ -89,11 +84,11 @@ const handler: Handler = async (
                 });
 
                 if (rows === null) {
-                    return { statusCode: 503, headers: CORS, body: JSON.stringify({ error: "Database temporarily offline" }) };
+                    return { statusCode: 503, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Database temporarily offline" }) };
                 }
 
                 if (!rows || rows.length === 0) {
-                    return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: "Post not found" }) };
+                    return { statusCode: 404, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Post not found" }) };
                 }
 
                 const post = rows[0].data;
@@ -101,15 +96,15 @@ const handler: Handler = async (
                 // Security: Only return published posts for public access
                 const isAdminRequest = (ADMIN_SECRET !== "" && authHeader === `Bearer ${ADMIN_SECRET}`) || xUserId !== "";
                 if (post.status !== "published" && !isAdminRequest) {
-                    return { statusCode: 403, headers: CORS, body: JSON.stringify({ error: "Access denied" }) };
+                    return { statusCode: 403, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Access denied" }) };
                 }
 
-                return { statusCode: 200, headers: CORS, body: JSON.stringify(post) };
+                return { statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify(post) };
             }
 
             // Otherwise, fetch all posts
             const rows = await runQuery(async (sql) => await sql`SELECT data FROM blog_posts WHERE is_deleted = false ORDER BY created_at DESC`);
-            if (rows === null) return { statusCode: 503, headers: CORS, body: JSON.stringify({ error: "Database offline" }) };
+            if (rows === null) return { statusCode: 503, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Database offline" }) };
             
             // Public requests only see published posts
             const isAdminRequest = (ADMIN_SECRET !== "" && authHeader === `Bearer ${ADMIN_SECRET}`) || xUserId !== "";
@@ -119,7 +114,7 @@ const handler: Handler = async (
 
             return {
                 statusCode: 200,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify(posts),
             };
         }
@@ -132,7 +127,7 @@ const handler: Handler = async (
             if (!post.id) {
                 return {
                     statusCode: 400,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ error: "Missing post ID" }),
                 };
             }
@@ -150,7 +145,7 @@ const handler: Handler = async (
                 console.warn(`[BLOG] Post import/save aborted due to slug conflict: ${slug}`);
                 return {
                     statusCode: 409, // Conflict
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ error: "A post with this slug already exists" }),
                 };
             }
@@ -170,7 +165,7 @@ const handler: Handler = async (
 
             return {
                 statusCode: 200,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify(post),
             };
         }
@@ -178,7 +173,7 @@ const handler: Handler = async (
         // ── DELETE: Delete a post (Soft Delete) ──────────────────────
         if (event.httpMethod === "DELETE" && blogId) {
             if (!isSuperPrivileged) {
-                return { statusCode: 403, headers: CORS, body: JSON.stringify({ error: "Solo un SuperAdmin o Desarrollador puede borrar posts." }) };
+                return { statusCode: 403, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Solo un SuperAdmin o Desarrollador puede borrar posts." }) };
             }
             await runQuery(async (sql) => await sql`UPDATE blog_posts SET is_deleted = true, deleted_at = ${Date.now()} WHERE id = ${blogId}`);
             
@@ -190,7 +185,7 @@ const handler: Handler = async (
 
             return {
                 statusCode: 200,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify({ success: true, message: "Post ocultado correctamente (Soft Delete)" }),
             };
         }
@@ -213,19 +208,19 @@ const handler: Handler = async (
                 return post;
             });
 
-            if (!res) return { statusCode: 503, headers: CORS, body: JSON.stringify({ error: "Database offline" }) };
-            if (res.error === "not_found") return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: "Post not found" }) };
+            if (!res) return { statusCode: 503, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Database offline" }) };
+            if (res.error === "not_found") return { statusCode: 404, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Post not found" }) };
 
             return {
                 statusCode: 200,
-                headers: CORS,
+                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                 body: JSON.stringify(res),
             };
         }
 
         return {
             statusCode: 405,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({ error: "Method not allowed" }),
         };
     } catch (err: unknown) {
@@ -233,7 +228,7 @@ const handler: Handler = async (
         console.error("[api-admin-blog] Error:", err instanceof Error ? err.message : String(err));
         return {
             statusCode: 500,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({ error: safeError(err, isDev) }),
         };
     }

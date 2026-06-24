@@ -1,16 +1,11 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { safeError } from './_lib/errorHandler';
 import { checkRateLimit, getClientIp } from './_lib/rateLimiter';
 import { getVertexToken, gcsSignedUrl, getVertexConfig } from './_lib/vertex';
 import { runQuery } from './_lib/db';
-
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
 
 const GCP_VIDEO_BUCKET = process.env.GCP_VIDEO_BUCKET || "";
 
@@ -47,17 +42,17 @@ async function uploadToGCS(buffer: Buffer, filename: string, mimeType: string): 
 
 export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: CORS, body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     }
 
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: "Method not allowed" }) };
+        return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
     // ── IDENTITY VERIFICATION ─────────────────────────────────────────────
-    const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || event.headers["Authorization"]?.replace('Bearer ', '') || "";
+    const userId = getUserIdFromHeaders(event.headers);
     if (!userId) {
-        return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
+        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
     }
 
     // Validate user exists in DB
@@ -67,7 +62,7 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
     });
 
     if (!userExists) {
-        return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
+        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
     }
     // ──────────────────────────────────────────────────────────────────────
 
@@ -75,14 +70,14 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
         const clientIp = getClientIp(event);
         const rateLimit = await checkRateLimit(clientIp, { windowMs: 60000, max: 20 });
         if (!rateLimit.success) {
-            return { statusCode: 429, headers: CORS, body: JSON.stringify({ error: "Rate limit exceeded" }) };
+            return { statusCode: 429, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Rate limit exceeded" }) };
         }
 
         const body = JSON.parse(event.body || "{}");
         const { type, payload } = body;
 
         if (!type || !payload) {
-            return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Missing type or payload" }) };
+            return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing type or payload" }) };
         }
 
         switch (type) {
@@ -165,7 +160,7 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ audioBase64, audioMimeType: audioMime, audioUrl })
                 };
             }
@@ -177,19 +172,19 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
 
                 return {
                     statusCode: 200,
-                    headers: CORS,
+                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
                     body: JSON.stringify({ audioUrl })
                 };
             }
 
             default:
-                return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid type" }) };
+                return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Invalid type" }) };
         }
     } catch (error: any) {
         console.error(`[Portavoz API Error]:`, error.message);
         return {
             statusCode: 500,
-            headers: CORS,
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
             body: JSON.stringify({ error: "Operation failed", details: error.message })
         };
     }

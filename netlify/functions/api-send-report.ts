@@ -1,14 +1,9 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { sendEmail } from "./_lib/mailService";
 import { safeError, logError } from "./_lib/errorHandler";
-
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
 
 const handler: Handler = async (
     event: HandlerEvent,
@@ -16,17 +11,17 @@ const handler: Handler = async (
 ) => {
     // ── CORS preflight ──────────────────────────────────────────────
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: CORS, body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     }
 
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: "Method not allowed" }) };
+        return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
     let isEs = true;
 
     try {
-        const userId = event.headers["x-user-id"] || event.headers["X-User-Id"] || "";
+        const userId = getUserIdFromHeaders(event.headers);
         const body = JSON.parse(event.body || "{}");
         const { email, pdfBase64, fileName, domain, reportType, language = "es" } = body;
         isEs = language === "es";
@@ -35,7 +30,7 @@ const handler: Handler = async (
 
         if (!email || !pdfBase64) {
             console.error("[api-send-report] Missing email or pdf data");
-            return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Missing email or pdf data" }) };
+            return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing email or pdf data" }) };
         }
 
         const pdfSize = pdfBase64.length;
@@ -90,12 +85,12 @@ const handler: Handler = async (
         await sendEmail(email, subject, html, attachments);
         console.log(`[api-send-report] Email sent successfully to ${email}`);
 
-        return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true, message: "Email sent successfully" }) };
+        return { statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ success: true, message: "Email sent successfully" }) };
     } catch (err: any) {
         console.error("[api-send-report] CRITICAL Error:", err.message);
         return { 
             statusCode: 500, 
-            headers: CORS, 
+            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
             body: JSON.stringify({ 
                 error: (isEs ? "Error al enviar el email: " : "Email send error: ") + err.message 
             }) 

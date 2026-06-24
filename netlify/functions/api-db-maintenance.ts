@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 /**
  * api-db-maintenance.ts — Netlify Scheduled Function + Health Endpoint
  *
@@ -14,15 +15,9 @@ import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery, getCircuitStatus, resetCircuit } from "./_lib/db";
 import nodemailer from "nodemailer";
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Content-Type": "application/json",
-};
-
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: CORS,
+    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
     body: JSON.stringify(body),
 });
 
@@ -153,7 +148,7 @@ async function getStats() {
 
 // ── Handler ────────────────────────────────────────────────────────────────────
 export const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
 
     const isScheduled = !event.httpMethod || event.httpMethod === "GET" && event.path?.includes("db-maintenance");
     const isHealthCheck = event.httpMethod === "GET";

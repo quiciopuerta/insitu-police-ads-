@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "./_lib/corsHelper";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { safeError, logError } from "./_lib/errorHandler";
@@ -8,16 +9,9 @@ const PAYPAL_API = process.env.PAYPAL_MODE === 'live'
     ? "https://api-m.paypal.com"
     : "https://api-m.sandbox.paypal.com";
 
-const CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json",
-};
-
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: CORS,
+    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
     body: JSON.stringify(body),
 });
 
@@ -39,7 +33,7 @@ async function getPayPalAccessToken() {
 }
 
 const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
     if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) return json(500, { error: "PayPal credentials missing" });
 
     const body = event.body ? JSON.parse(event.body) : {};

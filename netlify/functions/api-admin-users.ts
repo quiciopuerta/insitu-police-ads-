@@ -1,3 +1,4 @@
+import { getUserIdFromHeaders } from "./_lib/authMiddleware";
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { runQuery } from "./_lib/db";
 import { safeError, logError } from "./_lib/errorHandler";
@@ -30,7 +31,7 @@ const ADMIN_SECRET = process.env.ADMIN_SECRET || "";
 
     // Auth: ADMIN_SECRET (scripts/CLI) OR logged-in admin user (frontend)
     const authHeader = event.headers["authorization"] || event.headers["Authorization"] || event.headers["x-admin-key"] || "";
-    const xUserId = event.headers["x-user-id"] || event.headers["X-User-Id"] || "";
+    const xUserId = getUserIdFromHeaders(event.headers);
     
     let isAuthorized = ADMIN_SECRET !== "" && authHeader === `Bearer ${ADMIN_SECRET}`;
     
