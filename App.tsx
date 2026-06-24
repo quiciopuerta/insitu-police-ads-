@@ -89,8 +89,6 @@ import { Language, AppNotification } from "./types";
 import Toast from "./components/Toast";
 import InAppOverlay from "./components/InAppOverlay";
 import SubscriptionGate from "./components/SubscriptionGate";
-import { LongTermFeedbackPopup } from "./components/ui/LongTermFeedbackPopup";
-
 import { notificationService } from "./services/notificationService";
 import { releaseService } from "./services/releaseService";
 import SpotlightModal from "./components/SpotlightModal";
@@ -1012,7 +1010,6 @@ const App = () => {
           onUpgrade={() => setIsPricingOpen(true)} 
         />
       )}
-      {currentUser && <LongTermFeedbackPopup userId={currentUser.id} />}
       {/* WOW Notifications */}
       {spotlightUpdate && (
         <SpotlightModal

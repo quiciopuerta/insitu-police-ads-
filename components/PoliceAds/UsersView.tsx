@@ -23,7 +23,9 @@ export const UsersView: React.FC<UsersViewProps> = ({ currentUser }) => {
   const [formData, setFormData] = useState({
     email: '',
     role: 'mediaPlanner',
-    username: ''
+    username: '',
+    assignedClients: [] as string[],
+    assignedAccounts: [] as string[]
   });
 
   const [assignmentsData, setAssignmentsData] = useState({
@@ -81,7 +83,9 @@ export const UsersView: React.FC<UsersViewProps> = ({ currentUser }) => {
         body: JSON.stringify({
           email: formData.email.trim(),
           role: formData.role,
-          username: formData.username.trim() || undefined
+          username: formData.username.trim() || undefined,
+          assignedClients: formData.assignedClients,
+          assignedAccounts: formData.assignedAccounts
         })
       });
 
@@ -92,7 +96,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ currentUser }) => {
       }
 
       setSuccess(`¡Colaborador invitado con éxito! Contraseña temporal: ${data.tempPassword || 'Enviada por correo'}`);
-      setFormData({ email: '', role: 'mediaPlanner', username: '' });
+      setFormData({ email: '', role: 'mediaPlanner', username: '', assignedClients: [], assignedAccounts: [] });
       setShowForm(false);
       fetchData();
     } catch (err: any) {
@@ -264,7 +268,61 @@ export const UsersView: React.FC<UsersViewProps> = ({ currentUser }) => {
               </div>
             </div>
 
-            <div className="flex gap-2 justify-end pt-2">
+            {/* Asignaciones para Nuevo Colaborador */}
+            {formData.role !== 'admin' && formData.role !== 'superAdmin' && (
+              <div className="mt-6 space-y-4 pt-4 border-t border-white/10">
+                <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                  <Briefcase className="w-4 h-4" /> Asignar Clientes (Marcas)
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {clients.map(client => (
+                    <label key={client.id} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:bg-white/10 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.assignedClients.includes(client.id)}
+                        onChange={() => setFormData(prev => ({
+                          ...prev,
+                          assignedClients: prev.assignedClients.includes(client.id)
+                            ? prev.assignedClients.filter(id => id !== client.id)
+                            : [...prev.assignedClients, client.id]
+                        }))}
+                        className="w-4 h-4 bg-black border-white/20 rounded text-[#4f6bff] focus:ring-[#4f6bff]"
+                      />
+                      <span className="text-sm text-white font-medium">{client.name}</span>
+                    </label>
+                  ))}
+                  {clients.length === 0 && <p className="text-white/40 text-xs">No hay clientes creados.</p>}
+                </div>
+
+                <h4 className="font-bold text-white text-sm flex items-center gap-2 mt-4">
+                  <Shield className="w-4 h-4" /> Asignar Cuentas Publicitarias
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {accounts.map(acc => (
+                    <label key={acc.id} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:bg-white/10 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.assignedAccounts.includes(acc.id)}
+                        onChange={() => setFormData(prev => ({
+                          ...prev,
+                          assignedAccounts: prev.assignedAccounts.includes(acc.id)
+                            ? prev.assignedAccounts.filter(id => id !== acc.id)
+                            : [...prev.assignedAccounts, acc.id]
+                        }))}
+                        className="w-4 h-4 bg-black border-white/20 rounded text-[#4f6bff] focus:ring-[#4f6bff]"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-sm text-white font-medium truncate max-w-[120px]">{acc.accountName}</span>
+                        <span className="text-[10px] text-white/50">{acc.client?.name} • {acc.platform}</span>
+                      </div>
+                    </label>
+                  ))}
+                  {accounts.length === 0 && <p className="text-white/40 text-xs">No hay cuentas conectadas.</p>}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex gap-2 justify-end pt-4 mt-2">
               <button
                 type="button"
                 onClick={() => setShowForm(false)}

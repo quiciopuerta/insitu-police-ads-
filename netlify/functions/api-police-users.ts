@@ -101,11 +101,33 @@ export const handler: Handler = async (event: HandlerEvent) => {
             }
 
             const body = parseBody();
-            const { email, role, username } = body;
+            const { email, role, username, assignedClients, assignedAccounts } = body;
 
             if (!email) {
                 return json(400, { error: "Email is required" });
             }
+
+            const insertAssignments = async (uid: string) => {
+                const timestamp = Date.now();
+                if (assignedClients && Array.isArray(assignedClients)) {
+                    for (const c of assignedClients) {
+                        const asgId = `asg_${timestamp}_${Math.random().toString(36).substring(2, 9)}`;
+                        await runQuery(sql => sql`
+                            INSERT INTO police_user_assignments (id, user_id, organization_id, client_id, created_at)
+                            VALUES (${asgId}, ${uid}, ${orgId}, ${c}, ${timestamp})
+                        `);
+                    }
+                }
+                if (assignedAccounts && Array.isArray(assignedAccounts)) {
+                    for (const a of assignedAccounts) {
+                        const asgId = `asg_${timestamp}_${Math.random().toString(36).substring(2, 9)}`;
+                        await runQuery(sql => sql`
+                            INSERT INTO police_user_assignments (id, user_id, organization_id, platform_account_id, created_at)
+                            VALUES (${asgId}, ${uid}, ${orgId}, ${a}, ${timestamp})
+                        `);
+                    }
+                }
+            };
 
             // Check if user already exists
             const existing = await runQuery(sql => sql`SELECT id, organization_id, is_deleted FROM users WHERE email = ${email}`);
@@ -118,6 +140,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
                         SET is_deleted = false, deleted_at = null, organization_id = ${orgId}, role = ${role || 'mediaPlanner'}, "approvalStatus" = 'approved'
                         WHERE id = ${existUser.id}
                     `);
+                    await insertAssignments(existUser.id);
                     return json(200, { success: true, message: "Usuario reactivado y agregado a la organización.", userId: existUser.id });
                 }
                 
@@ -131,6 +154,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
                     SET organization_id = ${orgId}, role = ${role || 'mediaPlanner'}, "approvalStatus" = 'approved'
                     WHERE id = ${existUser.id}
                 `);
+                await insertAssignments(existUser.id);
                 return json(200, { success: true, message: "Usuario existente agregado a la organización.", userId: existUser.id });
             }
 
@@ -168,6 +192,8 @@ export const handler: Handler = async (event: HandlerEvent) => {
             } catch (mailErr) {
                 console.error("Failed to send invitation email:", mailErr);
             }
+
+            await insertAssignments(newUserId);
 
             return json(201, { success: true, userId: newUserId, tempPassword: tempPasswordPlain });
         }
