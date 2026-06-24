@@ -70,7 +70,22 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
       })
       .then(data => {
         if (data) {
-          setPolicies(data);
+          const sanitizeRules = (rules: any) => {
+            try {
+              let parsed = typeof rules === 'string' ? JSON.parse(rules) : rules;
+              if (!Array.isArray(parsed)) return [];
+              return parsed.filter((r: any) => r && typeof r === 'object' && r.type && r.label);
+            } catch (e) {
+              return [];
+            }
+          };
+
+          setPolicies({
+            organization_id: data.organization_id || '',
+            campaign_rules: sanitizeRules(data.campaign_rules),
+            adset_rules: sanitizeRules(data.adset_rules),
+            ad_rules: sanitizeRules(data.ad_rules)
+          });
         }
         setLoading(false);
       })
