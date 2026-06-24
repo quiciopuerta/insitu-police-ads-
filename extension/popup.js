@@ -4,8 +4,8 @@
  */
 
 const API_URLS = [
-  'https://main--insitu-company-ads.netlify.app',
-  'https://insitu.company'
+  'https://main--insitu-police-ads.netlify.app',
+  'https://policeads.insitu.company'
 ];
 
 async function fetchWithFallback(path, options = {}) {
