@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, Plus, Trash2, GripVertical } from 'lucide-react';
+import { Save, AlertCircle, Plus, Trash2, GripVertical, Building2, UserCircle, Briefcase } from 'lucide-react';
 import { API_URL } from '../../utils/apiConfig';
 import { AuthUser } from '../../types';
 
@@ -39,6 +39,13 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
   const [success, setSuccess] = useState('');
   const [organizationId, setOrganizationId] = useState<string | null>(null);
 
+  const [clients, setClients] = useState<any[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
+
+  const [selectedLevel, setSelectedLevel] = useState<'global' | 'client' | 'account'>('global');
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+
   const [policies, setPolicies] = useState<Policies>({
     organization_id: '',
     campaign_rules: [],
@@ -46,25 +53,65 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
     ad_rules: []
   });
 
+  // Fetch init data
   useEffect(() => {
-    // Primero, obtener la organización del usuario
-    fetch(`${API_URL}/api-police-organizations`, {
-      headers: { 'X-User-Id': currentUser.id }
-    })
-      .then(res => res.json())
-      .then(orgs => {
+    setLoading(true);
+    Promise.all([
+      fetch(`${API_URL}/api-police-organizations`, { headers: { 'X-User-Id': currentUser.id } }).then(r => {
+        if (!r.ok) throw new Error('Error fetching organizations');
+        return r.json();
+      }),
+      fetch(`${API_URL}/api-police-clients`, { headers: { 'X-User-Id': currentUser.id } }).then(r => r.ok ? r.json() : []),
+      fetch(`${API_URL}/api-police-accounts`, { headers: { 'X-User-Id': currentUser.id } }).then(r => r.ok ? r.json() : [])
+    ])
+      .then(([orgs, cData, aData]) => {
         if (orgs && orgs.length > 0) {
-          const orgId = orgs[0].id;
-          setOrganizationId(orgId);
-          return fetch(`${API_URL}/api-police-policies?organization_id=${orgId}`, {
-            headers: { 'X-User-Id': currentUser.id }
-          });
+          setOrganizationId(orgs[0].id);
+          setClients(Array.isArray(cData) ? cData : []);
+          setAccounts(Array.isArray(aData) ? aData : []);
         } else {
           throw new Error('No tienes una organización configurada para usar Police Ads.');
         }
       })
+      .catch(err => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [currentUser]);
+
+  // Fetch policy when selection changes
+  useEffect(() => {
+    if (!organizationId) return;
+
+    let cId = '';
+    let aId = '';
+
+    if (selectedLevel === 'client') {
+      if (!selectedClientId) {
+        setPolicies({ organization_id: organizationId, campaign_rules: [], adset_rules: [], ad_rules: [] });
+        setLoading(false);
+        return;
+      }
+      cId = selectedClientId;
+    } else if (selectedLevel === 'account') {
+      if (!selectedAccountId) {
+        setPolicies({ organization_id: organizationId, campaign_rules: [], adset_rules: [], ad_rules: [] });
+        setLoading(false);
+        return;
+      }
+      aId = selectedAccountId;
+      const acc = accounts.find(a => a.id === selectedAccountId);
+      if (acc) cId = acc.client_id;
+    }
+
+    setLoading(true);
+    let url = `${API_URL}/api-police-policies?organization_id=${organizationId}`;
+    if (cId) url += `&client_id=${cId}`;
+    if (aId) url += `&platform_account_id=${aId}`;
+
+    fetch(url, { headers: { 'X-User-Id': currentUser.id } })
       .then(res => {
-        if (!res) return;
         if (!res.ok) throw new Error('Error al cargar políticas');
         return res.json();
       })
@@ -81,7 +128,7 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
           };
 
           setPolicies({
-            organization_id: data.organization_id || '',
+            organization_id: data.organization_id || organizationId,
             campaign_rules: sanitizeRules(data.campaign_rules),
             adset_rules: sanitizeRules(data.adset_rules),
             ad_rules: sanitizeRules(data.ad_rules)
@@ -94,13 +141,35 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
         setError(err.message);
         setLoading(false);
       });
-  }, [currentUser]);
+
+  }, [organizationId, selectedLevel, selectedClientId, selectedAccountId, accounts, currentUser]);
 
   const handleSave = async () => {
     if (!organizationId) return;
     setSaving(true);
     setError('');
     setSuccess('');
+
+    let cId = '';
+    let aId = '';
+
+    if (selectedLevel === 'client') {
+      if (!selectedClientId) {
+        setError("Selecciona un cliente");
+        setSaving(false);
+        return;
+      }
+      cId = selectedClientId;
+    } else if (selectedLevel === 'account') {
+      if (!selectedAccountId) {
+        setError("Selecciona una cuenta");
+        setSaving(false);
+        return;
+      }
+      aId = selectedAccountId;
+      const acc = accounts.find(a => a.id === selectedAccountId);
+      if (acc) cId = acc.client_id;
+    }
 
     try {
       const response = await fetch(`${API_URL}/api-police-policies`, {
@@ -111,7 +180,11 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
         },
         body: JSON.stringify({
           organization_id: organizationId,
-          ...policies
+          client_id: cId || null,
+          platform_account_id: aId || null,
+          campaign_rules: policies.campaign_rules,
+          adset_rules: policies.adset_rules,
+          ad_rules: policies.ad_rules
         })
       });
 
@@ -173,7 +246,7 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
             </div>
           ))}
           {!rules?.length && (
-            <span className="text-sm text-white/30 italic">No hay reglas definidas. Nomenclatura libre.</span>
+            <span className="text-sm text-white/30 italic">No hay reglas definidas para este nivel.</span>
           )}
         </div>
 
@@ -206,10 +279,6 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
     );
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-white/50">Cargando políticas...</div>;
-  }
-
   if (error && !organizationId) {
     return (
       <div className="p-8">
@@ -227,11 +296,11 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-white">Políticas de Gobernanza</h2>
-          <p className="text-white/50 text-sm">Configura las reglas dinámicas de nomenclatura que la extensión validará.</p>
+          <p className="text-white/50 text-sm">Configura las reglas dinámicas de nomenclatura por jerarquía.</p>
         </div>
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || loading}
           className="flex items-center gap-2 px-6 py-2.5 bg-[#4f6bff] hover:bg-[#4f6bff]/90 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
         >
           {saving ? (
@@ -241,6 +310,60 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
           )}
           Guardar Cambios
         </button>
+      </div>
+
+      <div className="bg-[#0b0e17] rounded-xl border border-white/5 p-6 mb-6 flex flex-col md:flex-row gap-4 items-center">
+        <div className="flex bg-[#1a1f36] rounded-lg p-1 border border-white/10 w-full md:w-auto">
+          <button 
+            onClick={() => setSelectedLevel('global')}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-colors ${selectedLevel === 'global' ? 'bg-[#4f6bff] text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+          >
+            <Building2 className="w-4 h-4" /> Agencia Global
+          </button>
+          <button 
+            onClick={() => setSelectedLevel('client')}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-colors ${selectedLevel === 'client' ? 'bg-[#4f6bff] text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+          >
+            <UserCircle className="w-4 h-4" /> Por Cliente
+          </button>
+          <button 
+            onClick={() => setSelectedLevel('account')}
+            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-colors ${selectedLevel === 'account' ? 'bg-[#4f6bff] text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+          >
+            <Briefcase className="w-4 h-4" /> Por Cuenta
+          </button>
+        </div>
+
+        {selectedLevel === 'client' && (
+          <select 
+            value={selectedClientId}
+            onChange={(e) => setSelectedClientId(e.target.value)}
+            className="flex-1 bg-[#1a1f36] border border-white/10 text-white text-sm rounded-lg focus:ring-[#4f6bff] focus:border-[#4f6bff] block p-2.5"
+          >
+            <option value="">Selecciona un Cliente...</option>
+            {clients.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        )}
+
+        {selectedLevel === 'account' && (
+          <select 
+            value={selectedAccountId}
+            onChange={(e) => setSelectedAccountId(e.target.value)}
+            className="flex-1 bg-[#1a1f36] border border-white/10 text-white text-sm rounded-lg focus:ring-[#4f6bff] focus:border-[#4f6bff] block p-2.5"
+          >
+            <option value="">Selecciona una Cuenta Publicitaria...</option>
+            {accounts.map(a => {
+              const client = clients.find(c => c.id === a.client_id);
+              return (
+                <option key={a.id} value={a.id}>
+                  {client ? `${client.name} - ` : ''}{a.account_name || a.account_id} ({a.platform})
+                </option>
+              );
+            })}
+          </select>
+        )}
       </div>
 
       {error && (
@@ -255,9 +378,16 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
         </div>
       )}
 
-      {renderRuleEditor('campaign_rules', 'Reglas para Campañas')}
-      {renderRuleEditor('adset_rules', 'Reglas para Grupos de Anuncios (Ad Sets)')}
-      {renderRuleEditor('ad_rules', 'Reglas para Anuncios (Ads)')}
+      {loading ? (
+        <div className="p-8 text-center text-white/50">Cargando políticas...</div>
+      ) : (
+        <>
+          {renderRuleEditor('campaign_rules', 'Reglas para Campañas')}
+          {renderRuleEditor('adset_rules', 'Reglas para Grupos de Anuncios (Ad Sets)')}
+          {renderRuleEditor('ad_rules', 'Reglas para Anuncios (Ads)')}
+        </>
+      )}
     </div>
   );
 };
+
