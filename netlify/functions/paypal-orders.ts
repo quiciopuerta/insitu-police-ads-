@@ -11,7 +11,7 @@ const PAYPAL_API = process.env.PAYPAL_MODE === 'live'
 
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
     body: JSON.stringify(body),
 });
 
@@ -33,7 +33,7 @@ async function getPayPalAccessToken() {
 }
 
 const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
     if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) return json(500, { error: "PayPal credentials missing" });
 
     const body = event.body ? JSON.parse(event.body) : {};

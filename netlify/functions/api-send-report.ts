@@ -11,11 +11,11 @@ const handler: Handler = async (
 ) => {
     // ── CORS preflight ──────────────────────────────────────────────
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
     }
 
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
+        return { statusCode: 405, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
     let isEs = true;
@@ -30,7 +30,7 @@ const handler: Handler = async (
 
         if (!email || !pdfBase64) {
             console.error("[api-send-report] Missing email or pdf data");
-            return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing email or pdf data" }) };
+            return { statusCode: 400, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Missing email or pdf data" }) };
         }
 
         const pdfSize = pdfBase64.length;
@@ -85,12 +85,12 @@ const handler: Handler = async (
         await sendEmail(email, subject, html, attachments);
         console.log(`[api-send-report] Email sent successfully to ${email}`);
 
-        return { statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ success: true, message: "Email sent successfully" }) };
+        return { statusCode: 200, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ success: true, message: "Email sent successfully" }) };
     } catch (err: any) {
         console.error("[api-send-report] CRITICAL Error:", err.message);
         return { 
             statusCode: 500, 
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), 
             body: JSON.stringify({ 
                 error: (isEs ? "Error al enviar el email: " : "Email send error: ") + err.message 
             }) 

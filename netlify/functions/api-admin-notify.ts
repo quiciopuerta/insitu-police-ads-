@@ -10,7 +10,7 @@ const BRAND = process.env.SMTP_FROM_NAME || "INsitu AI";
 
 const jsonResponse = (status: number, body: unknown) => ({
   statusCode: status,
-  headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+  headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
   body: JSON.stringify(body),
 });
 
@@ -141,7 +141,7 @@ const applyPersonalization = (text: string, user: any): string => {
 }
 
 const handler: Handler = async (event: HandlerEvent) => {
-  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
 
   try {
     const authHeader = event.headers["authorization"] || event.headers["Authorization"] || event.headers["x-admin-key"] || "";

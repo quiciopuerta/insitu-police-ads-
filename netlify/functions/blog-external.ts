@@ -87,7 +87,7 @@ function adaptContent(html: string): string {
 const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     // 1. Handle CORS Preflight
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
     }
 
     // 2. Handle DELETE (Mocking for now, as we'd need a DB to persist "hidden" state)
@@ -97,7 +97,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
         console.log(`[Blog-External] Request to hide/delete external post: ${id}`);
         return {
             statusCode: 200,
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
             body: JSON.stringify({ success: true, message: `Post ${id} marked for deletion (simulated)` }),
         };
     }
@@ -151,7 +151,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
         if (wpPosts.length === 0) {
             return {
                 statusCode: 200,
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
                 body: JSON.stringify([]),
             };
         }
@@ -197,13 +197,13 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
 
         return {
             statusCode: 200,
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
             body: JSON.stringify(posts),
         };
     } catch (err: any) {
         return {
             statusCode: 500,
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
             body: JSON.stringify({ error: err.message }),
         };
     }

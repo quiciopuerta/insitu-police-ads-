@@ -163,23 +163,23 @@ let seoHistoryInitialized = false;
 const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     // ── CORS preflight ─────────────────────────────────────────────────────────
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
     }
 
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
+        return { statusCode: 405, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
     const clientIp = getClientIp(event);
     const rateLimit = await checkRateLimit(clientIp, { windowMs: 60000, max: 10 });
     if (!rateLimit.success) {
-        return { statusCode: 429, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Rate limit exceeded. Try again later." }) };
+        return { statusCode: 429, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Rate limit exceeded. Try again later." }) };
     }
 
     // Authentication
     const userId = getUserIdFromHeaders(event.headers);
     if (!userId) {
-        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
+        return { statusCode: 401, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Unauthorized: Missing identity" }) };
     }
 
     const userExists = await runQuery(async (sql) => {
@@ -188,7 +188,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     });
 
     if (!userExists) {
-        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
+        return { statusCode: 401, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Unauthorized: Invalid identity" }) };
     }
 
     let domain = "";
@@ -215,18 +215,18 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
             .trim();
         // Validate domain format: alphanumeric, dots, hyphens only
         if (!/^[a-z0-9]([a-z0-9-\.]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/.test(domain)) {
-            return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Invalid domain format" }) };
+            return { statusCode: 400, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Invalid domain format" }) };
         }
         country = bodyCountry;
         language = bodyLanguage;
         period = bodyPeriod;
         refresh = !!forceRefresh;
     } catch {
-        return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Invalid JSON body" }) };
+        return { statusCode: 400, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Invalid JSON body" }) };
     }
 
     if (!domain) {
-        return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "domain is required" }) };
+        return { statusCode: 400, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "domain is required" }) };
     }
 
     try {
@@ -264,7 +264,7 @@ const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
                 // and consistent Capa 3 logic.
                 applyConsistentNormalization(cached, {}); 
                 
-                return { statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify(cached) };
+                return { statusCode: 200, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify(cached) };
             }
         }
 
@@ -657,7 +657,7 @@ INSTRUCCIONES DE CONVERSIÓN — CRÍTICO, LEE ANTES DE ESCRIBIR EL JSON:
 
         return {
             statusCode: 200,
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
             body: JSON.stringify(result),
         };
     } catch (err: unknown) {
@@ -665,7 +665,7 @@ INSTRUCCIONES DE CONVERSIÓN — CRÍTICO, LEE ANTES DE ESCRIBIR EL JSON:
         console.error("[api-analyze-traffic] Error:", message);
         return {
             statusCode: 500,
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
             body: JSON.stringify({ error: safeError(err, process.env.NODE_ENV === "development") }),
         };
     }

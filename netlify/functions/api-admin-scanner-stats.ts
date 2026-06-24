@@ -8,7 +8,7 @@ const DB_URL = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || "
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "";
 
 export const handler: Handler = async (event) => {
-  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
 
   // DB initialization is handled by runQuery
 
@@ -25,7 +25,7 @@ export const handler: Handler = async (event) => {
   }
   if (!isAuthorized) {
     console.warn(`[ADMIN-STATS] 401 Unauthorized for path ${event.path}. UserUID: ${xUserId || 'Missing'}`);
-    return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Unauthorized" }) };
+    return { statusCode: 401, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Unauthorized" }) };
   }
 
 
@@ -66,11 +66,11 @@ export const handler: Handler = async (event) => {
       return { tracksCount, signalsCount, avgRelevance, statsByType, statsBySource, historicalSignals };
     });
 
-    if (!stats) return { statusCode: 503, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Database offline" }) };
+    if (!stats) return { statusCode: 503, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Database offline" }) };
 
     return {
       statusCode: 200,
-      headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+      headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
       body: JSON.stringify({
         tracks: stats.tracksCount[0],
         signals: {
@@ -85,7 +85,7 @@ export const handler: Handler = async (event) => {
   } catch (err: any) {
     return {
       statusCode: 500,
-      headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+      headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
       body: JSON.stringify({ error: safeError(err) })
     };
   }

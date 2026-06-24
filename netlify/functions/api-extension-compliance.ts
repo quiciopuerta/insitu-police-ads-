@@ -6,12 +6,12 @@ import { safeError } from "./_lib/errorHandler";
 
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
     body: JSON.stringify(body),
 });
 
 export const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
 
     const authHeader = event.headers['authorization'] || event.headers['Authorization'] || '';
     const callerUserId = getUserIdFromHeaders(event.headers);

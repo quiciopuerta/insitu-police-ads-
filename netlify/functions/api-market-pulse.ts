@@ -12,14 +12,14 @@ import { getGeminiKey, VISION_MODEL, callGeminiApi } from "./_lib/gemini";
  * Runs monthly or on-demand by admin.
  */
 export const handler: Handler = async (event) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin) };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined) };
     
     // Auth Check: Standardized for Admin/SuperAdmin roles via X-User-Id
     // Consistent with api-history and other Admin modules
     const xUserId = getUserIdFromHeaders(event.headers);
     if (!xUserId) {
         console.error("[api-market-pulse] Authentication Failed: Missing X-User-Id header");
-        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing authorization (X-User-Id)" }) };
+        return { statusCode: 401, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Missing authorization (X-User-Id)" }) };
     }
 
     try {
@@ -32,7 +32,7 @@ export const handler: Handler = async (event) => {
                         (callerRoles[0]?.role === 'superAdmin' || callerRoles[0]?.role === 'admin');
 
         if (!isAdmin) {
-            return { statusCode: 403, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Forbidden: Admin access required" }) };
+            return { statusCode: 403, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Forbidden: Admin access required" }) };
         }
 
         let gemini;
@@ -40,7 +40,7 @@ export const handler: Handler = async (event) => {
             gemini = getGeminiKey();
         } catch (authErr: any) {
             console.error("[api-market-pulse] Key error:", authErr.message);
-            return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Configuración de IA incompleta (Gemini Key missing)", details: authErr.message }) };
+            return { statusCode: 500, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Configuración de IA incompleta (Gemini Key missing)", details: authErr.message }) };
         }
 
         // 1. Fetch high-relevance signals from the last 30 days
@@ -62,7 +62,7 @@ export const handler: Handler = async (event) => {
             // Don't crash 500 if the table doesn't exist yet, just stop pulse.
             return { 
                 statusCode: 200, 
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), 
                 body: JSON.stringify({ message: "Database not ready for Pulse (signals table missing).", details: dbErr.message }) 
             };
         }
@@ -70,7 +70,7 @@ export const handler: Handler = async (event) => {
         if (!signals || signals.length === 0) {
             return { 
                 statusCode: 200, 
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), 
                 body: JSON.stringify({ message: "No se encontraron señales de competidores suficientes (score > 80) para generar un Pulse semanal." }) 
             };
         }
@@ -143,7 +143,7 @@ export const handler: Handler = async (event) => {
             console.error("[api-market-pulse] Gemini execution or parse failed:", parseErr.message);
             return { 
                 statusCode: 500, 
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), 
                 body: JSON.stringify({ 
                     error: "Format Error", 
                     message: "La IA no entregó un formato de inteligencia de mercado válido.",
@@ -153,7 +153,7 @@ export const handler: Handler = async (event) => {
         }
 
         if (!pulseData || !pulseData.trends) {
-            return { statusCode: 500, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Gemini failed to output structured pulse data" }) };
+            return { statusCode: 500, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Gemini failed to output structured pulse data" }) };
         }
 
         // 3. Update AI Prompt Rules
@@ -196,7 +196,7 @@ export const handler: Handler = async (event) => {
 
         return {
             statusCode: 200,
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
             body: JSON.stringify({ 
                 success: true, 
                 pulseId: insertedRuleId,
@@ -210,7 +210,7 @@ export const handler: Handler = async (event) => {
         console.error("[api-market-pulse] Fatal Error:", e.message, e.stack);
         return { 
             statusCode: 500, 
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin), 
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), 
             body: JSON.stringify({ error: "Internal Server Error", message: e.message, debug: e.stack }) 
         };
     }

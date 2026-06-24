@@ -15,14 +15,14 @@ function hashPassword(plain: string): string {
 
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
     body: JSON.stringify(body),
 });
 
 let migrationsRan = false;
 
 export const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
 
     if (!migrationsRan) {
         await runMigrations().catch(err => console.error("[POLICE-USERS] Migrations failed:", err));

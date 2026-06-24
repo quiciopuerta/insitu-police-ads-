@@ -21,7 +21,7 @@ const APP_URL = process.env.APP_URL || "https://insitu.company";
 
 const jsonResponse = (statusCode: number, body: unknown) => ({
     statusCode,
-    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
     body: JSON.stringify(body),
 });
 

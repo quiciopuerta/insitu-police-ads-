@@ -17,7 +17,7 @@ import nodemailer from "nodemailer";
 
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
     body: JSON.stringify(body),
 });
 
@@ -148,7 +148,7 @@ async function getStats() {
 
 // ── Handler ────────────────────────────────────────────────────────────────────
 export const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
 
     const isScheduled = !event.httpMethod || event.httpMethod === "GET" && event.path?.includes("db-maintenance");
     const isHealthCheck = event.httpMethod === "GET";

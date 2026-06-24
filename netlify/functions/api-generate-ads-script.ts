@@ -8,10 +8,10 @@ import crypto from "crypto";
 
 export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
     if (event.httpMethod === "OPTIONS") {
-        return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+        return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
     }
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Method not allowed" }) };
+        return { statusCode: 405, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Method not allowed" }) };
     }
 
     try {
@@ -23,7 +23,7 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
         if (!rateLimit.success) {
             return {
                 statusCode: 429,
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
                 body: JSON.stringify({ error: "Too many requests" })
             };
         }
@@ -42,7 +42,7 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
             console.error("[api-generate-ads-script] Missing user ID in headers. Available headers:", Object.keys(event.headers));
             return {
                 statusCode: 401,
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
                 body: JSON.stringify({ error: "User not authenticated. Please sign in first." })
             };
         }
@@ -63,13 +63,13 @@ export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext
             console.error("[api-generate-ads-script] User not found in DB:", userId);
             return {
                 statusCode: 401,
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
                 body: JSON.stringify({ error: "User account not found." })
             };
         }
 
         if (!brief) {
-            return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing brief parameter" }) };
+            return { statusCode: 400, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Missing brief parameter" }) };
         }
 
         // Gemini Prompt Construction
@@ -147,7 +147,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
             if (geminiError.isCredentialError) {
                 return {
                     statusCode: 401,
-                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+                    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
                     body: JSON.stringify({
                         error: "API configuration error. Contact support.",
                         details: process.env.NODE_ENV === 'development' ? geminiError.message : undefined
@@ -159,7 +159,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
             if (geminiError.isTimeout) {
                 return {
                     statusCode: 504,
-                    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+                    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
                     body: JSON.stringify({
                         error: "AI service timeout. Try again with a simpler request.",
                         details: process.env.NODE_ENV === 'development' ? geminiError.message : undefined
@@ -170,7 +170,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
             // Everything else (429, 5xx, network) = service unavailable
             return {
                 statusCode: 503,
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
                 body: JSON.stringify({
                     error: "AI service temporarily unavailable. Please try again in a few moments.",
                     details: process.env.NODE_ENV === 'development' ? {
@@ -190,7 +190,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
             });
             return {
                 statusCode: 503,
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
                 body: JSON.stringify({
                     error: "AI service returned empty response. Please try again.",
                     details: process.env.NODE_ENV === 'development' ? JSON.stringify(aiResponseData?.candidates?.[0]) : undefined
@@ -236,7 +236,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
 
         return {
             statusCode: 200,
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
             body: JSON.stringify({
                 id: scriptId,
                 script_content: scriptContent,
@@ -258,7 +258,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
         if (error.message?.includes('ECONNREFUSED') || error.message?.includes('ENOTFOUND')) {
             return {
                 statusCode: 503,
-                headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
                 body: JSON.stringify({
                     error: "Service temporarily unavailable. Database or API connection failed.",
                     details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -268,7 +268,7 @@ Instrucciones detalladas de implementación paso a paso en formato Markdown.
 
         return {
             statusCode: 500,
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
             body: JSON.stringify({
                 error: "Unexpected error while generating script. Please try again.",
                 details: process.env.NODE_ENV === 'development' ? error.message : undefined

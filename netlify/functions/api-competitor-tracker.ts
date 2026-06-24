@@ -8,7 +8,7 @@ const DB_URL = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || "
 
 const json = (statusCode: number, body: unknown) => ({
     statusCode,
-    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
     body: JSON.stringify(body),
 });
 
@@ -21,7 +21,7 @@ const PLAN_LIMITS: Record<string, number> = {
 };
 
 const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
 
     // ── Ensure tables exist (Refactored for Signals) ───────────────────────────
     await runQuery(async (sql) => {

@@ -18,15 +18,15 @@ const getPageSpeedKey = () => {
 };
 
 export const handler: Handler = async (event) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
-    if (event.httpMethod !== "GET") return { statusCode: 405, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "Method Not Allowed" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
+    if (event.httpMethod !== "GET") return { statusCode: 405, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "Method Not Allowed" };
 
     const url = event.queryStringParameters?.url;
     const strategy = event.queryStringParameters?.strategy || "desktop";
     const forceRefresh = event.queryStringParameters?.refresh === "true";
     
     if (!url) {
-        return { statusCode: 400, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: JSON.stringify({ error: "Missing required parameter: url" }) };
+        return { statusCode: 400, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: "Missing required parameter: url" }) };
     }
     
     try {
@@ -45,7 +45,7 @@ export const handler: Handler = async (event) => {
                 console.log(`[PageSpeed] Serving from cache: ${url} (${strategy})`);
                 return {
                     statusCode: 200,
-                    headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "X-Cache": "HIT" },
+                    headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "X-Cache": "HIT" },
                     body: JSON.stringify(cached[0].data)
                 };
             }
@@ -112,7 +112,7 @@ ${JSON.stringify(criticalAudits, null, 2)}`;
 
         return {
             statusCode: 200,
-            headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "X-Cache": "MISS" },
+            headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "X-Cache": "MISS" },
             body: JSON.stringify(finalResult)
         };
 
@@ -124,7 +124,7 @@ ${JSON.stringify(criticalAudits, null, 2)}`;
         
         return { 
             statusCode: status, 
-            headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+            headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
             body: JSON.stringify(errBody) 
         };
     }

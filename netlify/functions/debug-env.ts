@@ -14,17 +14,17 @@ const envPresence = (val: string | undefined) =>
 
 export const handler: Handler = async (event) => {
     if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 200, headers: getCorsHeaders(event.headers.origin || event.headers.Origin)_HEADERS, body: '' };
+        return { statusCode: 200, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: '' };
     }
 
     const secret = event.headers['x-admin-secret'];
     if (!secret || secret !== process.env.ADMIN_SECRET) {
-        return { statusCode: 401, headers: getCorsHeaders(event.headers.origin || event.headers.Origin)_HEADERS, body: JSON.stringify({ error: 'Unauthorized' }) };
+        return { statusCode: 401, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: JSON.stringify({ error: 'Unauthorized' }) };
     }
 
     return {
         statusCode: 200,
-        headers: getCorsHeaders(event.headers.origin || event.headers.Origin)_HEADERS,
+        headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
         body: JSON.stringify({
             apifyToken: envPresence(process.env.APIFY_API_TOKEN),
             apifyTokens: process.env.APIFY_API_TOKENS

@@ -44,13 +44,13 @@ const ALLOWED_HOSTS = [
 
 export const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
   }
 
   if (event.httpMethod !== "GET") {
     return {
       statusCode: 405,
-      headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "Content-Type": "application/json" },
       body: JSON.stringify({ error: "Method not allowed" }),
     };
   }
@@ -61,7 +61,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
   if (!rateLimit.success) {
     return {
       statusCode: 429,
-      headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "Content-Type": "application/json" },
       body: JSON.stringify({ error: "Rate limit exceeded. Please wait a minute." }),
     };
   }
@@ -70,7 +70,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
   if (!rawUrl) {
     return {
       statusCode: 400,
-      headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "Content-Type": "application/json" },
       body: JSON.stringify({ error: "Missing required ?url= parameter" }),
     };
   }
@@ -81,7 +81,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
   } catch {
     return {
       statusCode: 400,
-      headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "Content-Type": "application/json" },
       body: JSON.stringify({ error: "Invalid URL" }),
     };
   }
@@ -91,7 +91,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
   if (!isAllowed) {
     return {
       statusCode: 403,
-      headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "Content-Type": "application/json" },
       body: JSON.stringify({ error: `Forbidden: host ${targetUrl.hostname} is not in the allowed list` }),
     };
   }
@@ -114,7 +114,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
       console.error(`[GCSProxy] Upstream error ${gcsRes.status} for ${targetUrl.hostname}${targetUrl.pathname.substring(0, 60)}`);
       return {
         statusCode: gcsRes.status,
-        headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "Content-Type": "application/json" },
         body: JSON.stringify({ error: `GCS returned ${gcsRes.status}` }),
       };
     }
@@ -152,7 +152,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
         console.error(`[GCSProxy] Chunk fetch failed ${chunkRes.status}`);
         return {
           statusCode: chunkRes.status,
-          headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "Content-Type": "application/json" },
           body: JSON.stringify({ error: `GCS chunk fetch returned ${chunkRes.status}` }),
         };
       }
@@ -163,7 +163,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
       return {
         statusCode: 206,
         headers: {
-          ...getCorsHeaders(event.headers.origin || event.headers.Origin),
+          ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
           "Content-Type": chunkRes.headers.get("content-type") || "video/mp4",
           "Content-Length": String(chunkBuffer.byteLength),
           "Content-Range": actualContentRange,
@@ -179,7 +179,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
     const body = Buffer.from(buffer).toString("base64");
 
     const responseHeaders: Record<string, string> = {
-      ...getCorsHeaders(event.headers.origin || event.headers.Origin),
+      ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
       "Content-Type": gcsRes.headers.get("content-type") || "video/mp4",
       "Content-Length": String(buffer.byteLength),
       "Accept-Ranges": "bytes",
@@ -201,7 +201,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
     console.error("[GCSProxy] Error:", message);
     return {
       statusCode: 502,
-      headers: { ...getCorsHeaders(event.headers.origin || event.headers.Origin), "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), "Content-Type": "application/json" },
       body: JSON.stringify({ error: "GCS proxy failed", details: message }),
     };
   }

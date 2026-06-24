@@ -6,7 +6,7 @@ import { safeError, logError } from "./_lib/errorHandler";
 
 const jsonResponse = (statusCode: number, body: unknown) => ({
   statusCode,
-  headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+  headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
   body: JSON.stringify(body),
 });
 
@@ -23,7 +23,7 @@ const REASON_TO_RULE: Record<string, string> = {
 
 const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod === "OPTIONS")
-    return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
 
   // ── IDENTITY VERIFICATION ─────────────────────────────────────────────
   const userId = getUserIdFromHeaders(event.headers);

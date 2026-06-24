@@ -15,12 +15,12 @@ function safeJson(val: unknown, fallback: unknown): any {
 
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
     body: JSON.stringify(body),
 });
 
 const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
     if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
     // DB initialization is handled by runQuery
     const body = event.body ? JSON.parse(event.body) : {};

@@ -22,7 +22,7 @@ import type { PlatformUpdate, PlatformUpdateRead } from "../../types";
 
 const json = (status: number, body: unknown) => ({
     statusCode: status,
-    headers: getCorsHeaders(event.headers.origin || event.headers.Origin),
+    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
     body: JSON.stringify(body),
 });
 
@@ -53,7 +53,7 @@ function isAdminAuth(authHeader: string | null | undefined): boolean {
 let migrationsRan = false;
 
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(event.headers.origin || event.headers.Origin), body: "" };
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
 
     if (!migrationsRan) {
         await runMigrations().catch(err => console.error("[UPDATES] Migrations failed:", err));
