@@ -155,17 +155,19 @@ const InsituValidator = {
     return new Promise((resolve) => {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         chrome.storage.local.get({ maxBudget: 500 }, (result) => {
+          window.insituMaxBudget = Number(result.maxBudget);
           resolve(Number(result.maxBudget));
         });
       } else {
-        // En caso de que se use en la web simulada o en un fallback local
         try {
           const stored = localStorage.getItem('insitu_max_budget');
           if (stored) {
+            window.insituMaxBudget = Number(stored);
             resolve(Number(stored));
             return;
           }
         } catch (e) {}
+        window.insituMaxBudget = 500;
         resolve(500);
       }
     });
@@ -262,6 +264,7 @@ const InsituValidator = {
         platform: platform,
         campaign_name: campaignName,
         status: isValid ? 'valid' : 'invalid',
+        budget: this.getCampaignBudgetAmount(),
         budget_type: budgetType,
         start_date: dates.startDate,
         end_date: dates.endDate,
@@ -350,6 +353,25 @@ const InsituValidator = {
       startDate: startDate ? startDate.toISOString() : null,
       endDate: endDate ? endDate.toISOString() : null
     };
+  },
+
+  getCampaignBudgetAmount() {
+    const budgetSelectors = [
+      'input[data-testid*="budget"]', 'input[aria-label*="presupuesto" i]', 'input[aria-label*="budget" i]',
+      'input[placeholder*="presupuesto" i]', 'input[placeholder*="importe" i]',
+      'input[id*="budget" i]', 'input[name*="budget" i]'
+    ];
+    for (const selector of budgetSelectors) {
+      const inputs = document.querySelectorAll(selector);
+      if (inputs.length > 0) {
+        const val = inputs[0].value;
+        if (val) {
+          const num = parseFloat(val.replace(/[^\d.-]/g, ''));
+          if (!isNaN(num)) return num;
+        }
+      }
+    }
+    return 0;
   },
 
   getCampaignBudgetType() {
@@ -578,6 +600,32 @@ const InsituValidator = {
       
       // Objective Validation Logic
       let objectiveHtml = '';
+      
+      let budgetHtml = '';
+      const budgetAmount = this.getCampaignBudgetAmount();
+      const budgetType = this.getCampaignBudgetType();
+      const maxBudget = window.insituMaxBudget || 500;
+      
+      const expectedTotal = budgetType === 'daily' ? (budgetAmount * days) : budgetAmount;
+      
+      if (budgetAmount > 0) {
+        if (budgetAmount > maxBudget || expectedTotal > maxBudget) {
+          budgetHtml = `
+            <div style="display:flex; align-items:center; gap:8px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">
+              <span style="font-size:16px;">💸</span>
+              <span style="color:#f87171;">Alerta: El estimado total (${expectedTotal.toFixed(2)}) supera el límite de ${maxBudget.toFixed(2)}.</span>
+            </div>
+          `;
+          if (window.insituErrorsCount !== undefined) window.insituErrorsCount++;
+        } else {
+          budgetHtml = `
+            <div style="display:flex; align-items:center; gap:8px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">
+              <span style="font-size:16px;">💸</span>
+              <span style="color:#4ade80;">Presupuesto dentro del límite (Estimado: ${expectedTotal.toFixed(2)} | Límite: ${maxBudget.toFixed(2)})</span>
+            </div>
+          `;
+        }
+      }
       const uiObjective = this.detectUIObjective();
       
       // Find the campaign name input to extract the intended objective
@@ -622,6 +670,7 @@ const InsituValidator = {
           <span>Duración de Campaña: <strong style="color:#f43f5e;">${daysText}</strong></span>
         </div>
         ${objectiveHtml}
+        ${budgetHtml}
       `;
     } catch (e) {
       console.error('[insitu.company] Error updating campaign days badge:', e);
@@ -630,6 +679,7 @@ const InsituValidator = {
 
   initPublishBlocker() {
     if (window.insituPublishBlockerInitialized) return;
+    this.getBudgetLimit(); // Initialize max budget cache
     window.insituPublishBlockerInitialized = true;
     window.insituErrorsCount = 0; // Global error counter
 
