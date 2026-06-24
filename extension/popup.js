@@ -184,7 +184,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         await updatePolicies(token);
         showMainApp();
       } else {
-        authError.textContent = result.error || 'Credenciales inválidas';
+        if (response.ok && !result.token) {
+          authError.textContent = 'Error: Servidor no retornó token JWT.';
+        } else {
+          authError.textContent = result.error || ('Credenciales inválidas (HTTP ' + response.status + ')');
+        }
         authError.style.display = 'block';
       }
     } catch (err) {
