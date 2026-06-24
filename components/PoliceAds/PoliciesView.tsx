@@ -224,6 +224,7 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
   const renderRuleEditor = (level: 'campaign_rules' | 'adset_rules' | 'ad_rules', title: string) => {
     const rawRules = policies[level];
     const rules = Array.isArray(rawRules) ? rawRules : [];
+    const isTrafficker = currentUser.role === 'trafficker';
 
     return (
       <div className="bg-[#0b0e17] rounded-xl border border-white/5 p-6 mb-6">
@@ -235,14 +236,16 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
         <div className="flex flex-wrap gap-2 mb-6">
           {(Array.isArray(rules) ? rules : []).map((rule, index) => (
             <div key={index} className="flex items-center gap-2 bg-[#1a1f36] px-3 py-2 rounded-lg border border-white/10 group">
-              <GripVertical className="w-4 h-4 text-white/30 cursor-move" />
+              {!isTrafficker && <GripVertical className="w-4 h-4 text-white/30 cursor-move" />}
               <span className="text-sm font-semibold text-white">{rule.label}</span>
-              <button 
-                onClick={() => removeRule(level, index)}
-                className="text-white/30 hover:text-red-400 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {!isTrafficker && (
+                <button 
+                  onClick={() => removeRule(level, index)}
+                  className="text-white/30 hover:text-red-400 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           ))}
           {!rules?.length && (
@@ -250,31 +253,33 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          <select 
-            id={`select-${level}`}
-            className="bg-[#1a1f36] border border-white/10 text-white text-sm rounded-lg focus:ring-[#4f6bff] focus:border-[#4f6bff] block p-2.5"
-            defaultValue=""
-          >
-            <option value="" disabled>Añadir segmento...</option>
-            {AVAILABLE_SEGMENTS.map(s => (
-              <option key={s.type} value={s.type}>{s.label}</option>
-            ))}
-          </select>
-          <button
-            onClick={() => {
-              const select = document.getElementById(`select-${level}`) as HTMLSelectElement;
-              if (select.value) {
-                addRule(level, select.value);
-                select.value = '';
-              }
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#4f6bff]/20 text-[#4f6bff] rounded-lg hover:bg-[#4f6bff]/30 transition-colors font-semibold text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Añadir
-          </button>
-        </div>
+        {!isTrafficker && (
+          <div className="flex items-center gap-3">
+            <select 
+              id={`select-${level}`}
+              className="bg-[#1a1f36] border border-white/10 text-white text-sm rounded-lg focus:ring-[#4f6bff] focus:border-[#4f6bff] block p-2.5"
+              defaultValue=""
+            >
+              <option value="" disabled>Añadir segmento...</option>
+              {AVAILABLE_SEGMENTS.map(s => (
+                <option key={s.type} value={s.type}>{s.label}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => {
+                const select = document.getElementById(`select-${level}`) as HTMLSelectElement;
+                if (select.value) {
+                  addRule(level, select.value);
+                  select.value = '';
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-[#4f6bff]/20 text-[#4f6bff] rounded-lg hover:bg-[#4f6bff]/30 transition-colors font-semibold text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Añadir
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -298,18 +303,20 @@ export const PoliciesView: React.FC<PoliciesViewProps> = ({ currentUser }) => {
           <h2 className="text-xl font-bold text-white">Políticas de Gobernanza</h2>
           <p className="text-white/50 text-sm">Configura las reglas dinámicas de nomenclatura por jerarquía.</p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving || loading}
-          className="flex items-center gap-2 px-6 py-2.5 bg-[#4f6bff] hover:bg-[#4f6bff]/90 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
-        >
-          {saving ? (
-            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
-          Guardar Cambios
-        </button>
+        {currentUser.role !== 'trafficker' && (
+          <button
+            onClick={handleSave}
+            disabled={saving || loading}
+            className="flex items-center gap-2 px-6 py-2.5 bg-[#4f6bff] hover:bg-[#4f6bff]/90 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+          >
+            {saving ? (
+              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            Guardar Cambios
+          </button>
+        )}
       </div>
 
       <div className="bg-[#0b0e17] rounded-xl border border-white/5 p-6 mb-6 flex flex-col md:flex-row gap-4 items-center">

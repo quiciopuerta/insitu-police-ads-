@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { runQuery } from './_lib/db';
 import { getGeminiKey, callGeminiApi } from './_lib/gemini';
 import { callDeepSeekApi } from './_lib/deepseek';
+import { callGlmApi } from './_lib/glm';
 import { handler as googleAdsHandler } from './api-google-ads';
 import { checkRateLimit, getClientIp } from './_lib/rateLimiter';
 
@@ -109,6 +110,13 @@ export const handler: Handler = async (event, context) => {
 
         if (modelId && modelId.startsWith('deepseek')) {
             aiResponseData = await callDeepSeekApi({
+                model: modelId,
+                contents,
+                systemInstruction,
+                generationConfig: genConfig,
+            });
+        } else if (modelId && modelId.startsWith('glm')) {
+            aiResponseData = await callGlmApi({
                 model: modelId,
                 contents,
                 systemInstruction,

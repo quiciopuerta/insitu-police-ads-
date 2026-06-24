@@ -37,7 +37,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
         // Resolve extension session token or direct user ID to user.id
         let userId = callerUserId;
         const userResult = await runQuery(sql => sql`
-            SELECT id FROM users 
+            SELECT id, role FROM users 
             WHERE id = ${callerUserId} 
                OR extension_session_token = ${callerUserId}
         `);
@@ -48,6 +48,9 @@ export const handler: Handler = async (event: HandlerEvent) => {
             return json(401, { error: "Unauthorized: Invalid user identity or token" });
         }
 
+        const userRole = userResult[0].role || 'mediaPlanner';
+        const isAdmin = userRole === 'admin' || userRole === 'superAdmin';
+
         if (event.httpMethod === "GET") {
             const orgId = event.queryStringParameters?.organization_id;
             const clientId = event.queryStringParameters?.client_id;
@@ -55,18 +58,43 @@ export const handler: Handler = async (event: HandlerEvent) => {
             if (!orgId) return json(400, { error: "Missing organization_id" });
 
             // Ensure user has access to this organization
-            const orgs = await runQuery(sql => sql`SELECT id FROM police_organizations WHERE id = ${orgId} AND owner_id = ${userId}`);
+            let orgs = await runQuery(sql => sql`SELECT id FROM police_organizations WHERE id = ${orgId} AND owner_id = ${userId}`);
+            if (!orgs || orgs.length === 0) {
+                const userOrg = await runQuery(sql => sql`SELECT organization_id FROM users WHERE id = ${userId} AND organization_id = ${orgId}`);
+                if (userOrg && userOrg.length > 0) {
+                    orgs = [{ id: orgId }];
+                }
+            }
             if (!orgs || orgs.length === 0) {
                 return json(403, { error: "Forbidden: You don't have access to this organization" });
             }
 
+            let clientIdsFilter: string[] = [];
+            let accountIdsFilter: string[] = [];
+            if (!isAdmin) {
+                const asgs = await runQuery(sql => sql`
+                    SELECT client_id, platform_account_id FROM police_user_assignments 
+                    WHERE user_id = ${userId} AND organization_id = ${orgId}
+                `);
+                clientIdsFilter = (asgs || []).filter(a => a.client_id).map(a => a.client_id);
+                accountIdsFilter = (asgs || []).filter(a => a.platform_account_id).map(a => a.platform_account_id);
+            }
+
             if (event.queryStringParameters?.fetch_all === 'true') {
-                const allPolicies = await runQuery(sql => sql`SELECT * FROM police_policies WHERE organization_id = ${orgId}`);
+                let allPolicies = await runQuery(sql => sql`SELECT * FROM police_policies WHERE organization_id = ${orgId}`);
+                if (!isAdmin) {
+                    allPolicies = (allPolicies || []).filter(p => {
+                        if (!p.client_id && !p.platform_account_id) return true; // Can view org level
+                        if (p.client_id && clientIdsFilter.includes(p.client_id)) return true;
+                        if (p.platform_account_id && accountIdsFilter.includes(p.platform_account_id)) return true;
+                        return false;
+                    });
+                }
                 return json(200, allPolicies || []);
             }
 
             // Fetch hierarchical policies (all matching this org)
-            const policies = await runQuery(sql => sql`SELECT * FROM police_policies WHERE organization_id = ${orgId}`);
+            let policies = await runQuery(sql => sql`SELECT * FROM police_policies WHERE organization_id = ${orgId}`);
 
             // Determine the most specific policy
             let bestPolicy = null;
@@ -111,6 +139,10 @@ export const handler: Handler = async (event: HandlerEvent) => {
         }
 
         if (event.httpMethod === "POST") {
+            if (userRole === 'trafficker') {
+                return json(403, { error: "Los Traffikers tienen acceso de solo lectura a las políticas." });
+            }
+
             const body = JSON.parse(event.body || "{}");
             const { organization_id, client_id, platform_account_id, campaign_rules, adset_rules, ad_rules } = body;
 
@@ -119,9 +151,35 @@ export const handler: Handler = async (event: HandlerEvent) => {
             }
 
             // Verify access
-            const orgs = await runQuery(sql => sql`SELECT id FROM police_organizations WHERE id = ${organization_id} AND owner_id = ${userId}`);
+            let orgs = await runQuery(sql => sql`SELECT id FROM police_organizations WHERE id = ${organization_id} AND owner_id = ${userId}`);
+            if (!orgs || orgs.length === 0) {
+                const userOrg = await runQuery(sql => sql`SELECT organization_id FROM users WHERE id = ${userId} AND organization_id = ${organization_id}`);
+                if (userOrg && userOrg.length > 0) {
+                    orgs = [{ id: organization_id }];
+                }
+            }
             if (!orgs || orgs.length === 0) {
                 return json(403, { error: "Forbidden" });
+            }
+
+            if (!isAdmin) {
+                if (!client_id && !platform_account_id) {
+                    return json(403, { error: "Solo los directores pueden editar políticas de nivel organización." });
+                }
+                const asgs = await runQuery(sql => sql`
+                    SELECT client_id, platform_account_id FROM police_user_assignments 
+                    WHERE user_id = ${userId} AND organization_id = ${organization_id}
+                `);
+                const clientIdsFilter = (asgs || []).filter(a => a.client_id).map(a => a.client_id);
+                const accountIdsFilter = (asgs || []).filter(a => a.platform_account_id).map(a => a.platform_account_id);
+                
+                let hasAccess = false;
+                if (platform_account_id && accountIdsFilter.includes(platform_account_id)) hasAccess = true;
+                if (client_id && clientIdsFilter.includes(client_id)) hasAccess = true;
+
+                if (!hasAccess) {
+                    return json(403, { error: "No tienes permiso para editar políticas en esta cuenta/cliente." });
+                }
             }
 
             const timestamp = Date.now();

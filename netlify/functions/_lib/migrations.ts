@@ -426,6 +426,19 @@ export async function runMigrations(): Promise<void> {
         `;
         await sql`CREATE INDEX IF NOT EXISTS idx_user_tools_user_id ON user_tools (user_id)`.catch(() => {});
 
+        // ── police_user_assignments (RBAC Assignments) ─────────────────────────
+        await sql`
+            CREATE TABLE IF NOT EXISTS police_user_assignments (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                organization_id TEXT NOT NULL,
+                client_id TEXT,
+                platform_account_id TEXT,
+                created_at BIGINT NOT NULL
+            )
+        `;
+        await sql`CREATE INDEX IF NOT EXISTS idx_police_user_assignments_user ON police_user_assignments (user_id)`.catch(() => {});
+
         // ── user_scripts (Ads Optimizer Scripts) ───────────────────────────────
         await sql`
             CREATE TABLE IF NOT EXISTS user_scripts (

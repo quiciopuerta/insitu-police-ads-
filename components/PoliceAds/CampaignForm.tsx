@@ -170,7 +170,15 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ currentUser, onSucce
             <label className="block text-sm font-medium text-white/70 mb-2">Canal</label>
             <select
               value={formData.channel}
-              onChange={(e) => setFormData({ ...formData, channel: e.target.value })}
+              onChange={(e) => {
+                const channel = e.target.value;
+                const platformMap: Record<string, string> = {
+                  'FB': 'meta', 'GO': 'google', 'DV': 'dv360', 'TK': 'tiktok', 
+                  'LI': 'linkedin', 'PI': 'pinterest', 'SC': 'snapchat', 
+                  'X': 'x', 'AMZ': 'amazon'
+                };
+                setFormData({ ...formData, channel, platform: platformMap[channel] || 'meta' });
+              }}
               className="w-full px-4 py-2 bg-[#0b0e17] border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-magenta outline-none"
             >
               <option value="FB">Meta Ads (FB)</option>
@@ -314,23 +322,7 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ currentUser, onSucce
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-white/70 mb-2">Plataforma</label>
-        <select
-          value={formData.platform}
-          onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-        >
-          <option value="meta">Meta Ads</option>
-          <option value="google">Google Ads</option>
-          <option value="dv360">DV360</option>
-          <option value="tiktok">TikTok Ads</option>
-          <option value="linkedin">LinkedIn Ads</option>
-          <option value="pinterest">Pinterest</option>
-          <option value="snapchat">Snapchat</option>
-          <option value="x">X Ads</option>
-          <option value="amazon">Amazon Ads</option>
-        </select>
-      </div>
+
 
       <div className="flex gap-4 pt-6 border-t border-white/10">
         <button

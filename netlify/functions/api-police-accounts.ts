@@ -34,7 +34,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
         // Resolve extension session token or direct user ID to user.id
         let userId = callerUserId;
         const userResult = await runQuery(sql => sql`
-            SELECT id FROM users 
+            SELECT id, role FROM users 
             WHERE id = ${callerUserId} 
                OR extension_session_token = ${callerUserId}
         `);
@@ -45,10 +45,20 @@ export const handler: Handler = async (event: HandlerEvent) => {
             return json(401, { error: "Unauthorized: Invalid user identity or token" });
         }
 
+        const userRole = userResult[0].role || 'mediaPlanner';
+        const isAdmin = userRole === 'admin' || userRole === 'superAdmin';
+
         // Find user's organization first
         let orgs = await runQuery(sql => 
             sql`SELECT id FROM police_organizations WHERE owner_id = ${userId} AND is_deleted = false`
         );
+
+        if (!orgs || orgs.length === 0) {
+            const userOrg = await runQuery(sql => sql`SELECT organization_id FROM users WHERE id = ${userId}`);
+            if (userOrg && userOrg.length > 0 && userOrg[0].organization_id) {
+                orgs = [{ id: userOrg[0].organization_id }];
+            }
+        }
 
         if (!orgs || orgs.length === 0) {
             const timestamp = Date.now();
@@ -83,6 +93,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
         // Create platform account if POST (api-police-accounts-create or POST on api-police-accounts)
         if (event.httpMethod === "POST") {
+            if (!isAdmin) return json(403, { error: "Solo los directores pueden conectar cuentas." });
             const body = parseBody();
             const { clientId, platform, accountId, accountName, email, accessToken } = body;
 
@@ -113,6 +124,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
         // Delete account if DELETE
         if (event.httpMethod === "DELETE") {
+            if (!isAdmin) return json(403, { error: "Solo los directores pueden remover cuentas." });
             if (!targetAccountId) {
                 return json(400, { error: "Account ID is required" });
             }
@@ -138,16 +150,41 @@ export const handler: Handler = async (event: HandlerEvent) => {
         }
 
         // Fetch accounts (GET)
-        const dbAccounts = await runQuery(sql => sql`
-            SELECT 
-                a.*,
-                c.name as client_name
-            FROM police_platform_accounts a
-            LEFT JOIN police_clients c ON a.client_id = c.id
-            WHERE a.organization_id = ${orgId} 
-              AND (a.is_deleted IS NULL OR a.is_deleted = false)
-            ORDER BY a.created_at DESC
-        `);
+        let clientIdsFilter: string[] | null = null;
+        let accountIdsFilter: string[] | null = null;
+        if (!isAdmin) {
+            const asgs = await runQuery(sql => sql`
+                SELECT client_id, platform_account_id FROM police_user_assignments 
+                WHERE user_id = ${userId} AND organization_id = ${orgId}
+            `);
+            clientIdsFilter = (asgs || []).filter(a => a.client_id).map(a => a.client_id);
+            accountIdsFilter = (asgs || []).filter(a => a.platform_account_id).map(a => a.platform_account_id);
+            if (clientIdsFilter!.length === 0 && accountIdsFilter!.length === 0) {
+                return json(200, []);
+            }
+        }
+
+        const dbAccounts = await runQuery(sql => {
+            if (!isAdmin) {
+                return sql`
+                    SELECT a.*, c.name as client_name
+                    FROM police_platform_accounts a
+                    LEFT JOIN police_clients c ON a.client_id = c.id
+                    WHERE a.organization_id = ${orgId} 
+                      AND (a.id = ANY(${accountIdsFilter}) OR a.client_id = ANY(${clientIdsFilter}))
+                      AND (a.is_deleted IS NULL OR a.is_deleted = false)
+                    ORDER BY a.created_at DESC
+                `;
+            }
+            return sql`
+                SELECT a.*, c.name as client_name
+                FROM police_platform_accounts a
+                LEFT JOIN police_clients c ON a.client_id = c.id
+                WHERE a.organization_id = ${orgId} 
+                  AND (a.is_deleted IS NULL OR a.is_deleted = false)
+                ORDER BY a.created_at DESC
+            `;
+        });
 
         const formatted = (dbAccounts || []).map(a => ({
             id: a.id,

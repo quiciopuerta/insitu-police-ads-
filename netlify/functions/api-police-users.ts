@@ -14,7 +14,7 @@ function hashPassword(plain: string): string {
 const CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Id",
-    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Content-Type": "application/json",
 };
 
@@ -120,7 +120,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
                     // Reactivate deleted user
                     await runQuery(sql => sql`
                         UPDATE users 
-                        SET is_deleted = false, deleted_at = null, organization_id = ${orgId}, role = ${role || 'mediaPlanner'}, approval_status = 'approved'
+                        SET is_deleted = false, deleted_at = null, organization_id = ${orgId}, role = ${role || 'mediaPlanner'}, "approvalStatus" = 'approved'
                         WHERE id = ${existUser.id}
                     `);
                     return json(200, { success: true, message: "Usuario reactivado y agregado a la organización.", userId: existUser.id });
@@ -133,7 +133,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
                 // If exists but no organization, associate them
                 await runQuery(sql => sql`
                     UPDATE users 
-                    SET organization_id = ${orgId}, role = ${role || 'mediaPlanner'}, approval_status = 'approved'
+                    SET organization_id = ${orgId}, role = ${role || 'mediaPlanner'}, "approvalStatus" = 'approved'
                     WHERE id = ${existUser.id}
                 `);
                 return json(200, { success: true, message: "Usuario existente agregado a la organización.", userId: existUser.id });
@@ -146,7 +146,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
             const subscription = JSON.stringify({ status: "active", plan: "Starter", price: 0, expiryDate: 0 });
 
             await runQuery(sql => sql`
-                INSERT INTO users (id, username, password, email, role, approval_status, picture, last_login, subscription, usage_limit, brand_profiles, organization_id)
+                INSERT INTO users (id, username, password, email, role, "approvalStatus", picture, "lastLogin", subscription, "usageLimit", "brandProfiles", organization_id)
                 VALUES (
                   ${newUserId},
                   ${username || email.split("@")[0]},
@@ -202,24 +202,83 @@ export const handler: Handler = async (event: HandlerEvent) => {
             return json(200, { success: true });
         }
 
+        // Update user assignments and roles (PUT)
+        if (event.httpMethod === "PUT") {
+            if (!isOwner) {
+                return json(403, { error: "Forbidden: Solo el dueño de la organización puede actualizar colaboradores." });
+            }
+
+            const body = parseBody();
+            const { targetUserId, assignedClients, assignedAccounts, role } = body;
+            if (!targetUserId) {
+                return json(400, { error: "User ID is required" });
+            }
+
+            // Update role if provided
+            if (role) {
+                await runQuery(sql => sql`
+                    UPDATE users SET role = ${role}
+                    WHERE id = ${targetUserId} AND organization_id = ${orgId}
+                `);
+            }
+
+            // Update assignments
+            await runQuery(sql => sql`
+                DELETE FROM police_user_assignments 
+                WHERE user_id = ${targetUserId} AND organization_id = ${orgId}
+            `);
+
+            const timestamp = Date.now();
+            if (assignedClients && Array.isArray(assignedClients)) {
+                for (const c of assignedClients) {
+                    const asgId = `asg_${timestamp}_${Math.random().toString(36).substring(2, 9)}`;
+                    await runQuery(sql => sql`
+                        INSERT INTO police_user_assignments (id, user_id, organization_id, client_id, created_at)
+                        VALUES (${asgId}, ${targetUserId}, ${orgId}, ${c}, ${timestamp})
+                    `);
+                }
+            }
+            if (assignedAccounts && Array.isArray(assignedAccounts)) {
+                for (const a of assignedAccounts) {
+                    const asgId = `asg_${timestamp}_${Math.random().toString(36).substring(2, 9)}`;
+                    await runQuery(sql => sql`
+                        INSERT INTO police_user_assignments (id, user_id, organization_id, platform_account_id, created_at)
+                        VALUES (${asgId}, ${targetUserId}, ${orgId}, ${a}, ${timestamp})
+                    `);
+                }
+            }
+
+            return json(200, { success: true });
+        }
+
         // Fetch users of the organization (GET)
         const dbUsers = await runQuery(sql => sql`
             SELECT 
-                id, username, email, role, approval_status, "firstName", "lastName"
-            FROM users
-            WHERE organization_id = ${orgId} AND (is_deleted IS NULL OR is_deleted = false)
-            ORDER BY username ASC
+                u.id, u.username, u.email, u.role, u."approvalStatus", u."firstName", u."lastName"
+            FROM users u
+            WHERE u.organization_id = ${orgId} AND (u.is_deleted IS NULL OR u.is_deleted = false)
+            ORDER BY u.username ASC
         `);
 
-        const formatted = (dbUsers || []).map(u => ({
-            id: u.id,
-            username: u.username,
-            email: u.email,
-            role: u.role || 'mediaPlanner',
-            approvalStatus: u.approval_status || 'approved',
-            firstName: u.firstName || '',
-            lastName: u.lastName || ''
-        }));
+        const assignments = await runQuery(sql => sql`
+            SELECT user_id, client_id, platform_account_id FROM police_user_assignments
+            WHERE organization_id = ${orgId}
+        `);
+
+        const formatted = (dbUsers || []).map(u => {
+            const userAsgs = (assignments || []).filter(a => a.user_id === u.id);
+            return {
+                id: u.id,
+                username: u.username,
+                email: u.email,
+                role: u.role || 'mediaPlanner',
+                approvalStatus: u.approvalStatus || 'approved',
+                firstName: u.firstName || '',
+                lastName: u.lastName || '',
+                assignedClients: userAsgs.filter(a => a.client_id).map(a => a.client_id),
+                assignedAccounts: userAsgs.filter(a => a.platform_account_id).map(a => a.platform_account_id)
+            };
+        });
 
         return json(200, formatted);
     } catch (err: unknown) {

@@ -566,7 +566,6 @@ const InsituValidator = {
         '[aria-selected="true"], [aria-checked="true"], input[type="radio"]:checked, .selected, .active, [role="tab"][aria-selected="true"]'
       );
       
-      let detectedObjectiveText = '';
       for (const el of selectedElements) {
         let text = (el.innerText || el.textContent || '').toLowerCase();
         if (!text && el.id) {

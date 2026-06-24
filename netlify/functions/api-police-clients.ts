@@ -34,7 +34,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
         // Resolve extension session token or direct user ID to user.id
         let userId = callerUserId;
         const userResult = await runQuery(sql => sql`
-            SELECT id FROM users 
+            SELECT id, role FROM users 
             WHERE id = ${callerUserId} 
                OR extension_session_token = ${callerUserId}
         `);
@@ -45,10 +45,19 @@ export const handler: Handler = async (event: HandlerEvent) => {
             return json(401, { error: "Unauthorized: Invalid user identity or token" });
         }
 
+        const userRole = userResult[0].role || 'mediaPlanner';
+
         // Find user's organization first
         let orgs = await runQuery(sql => 
             sql`SELECT id FROM police_organizations WHERE owner_id = ${userId} AND is_deleted = false`
         );
+
+        if (!orgs || orgs.length === 0) {
+            const userOrg = await runQuery(sql => sql`SELECT organization_id FROM users WHERE id = ${userId}`);
+            if (userOrg && userOrg.length > 0 && userOrg[0].organization_id) {
+                orgs = [{ id: userOrg[0].organization_id }];
+            }
+        }
 
         if (!orgs || orgs.length === 0) {
             const timestamp = Date.now();
@@ -76,8 +85,11 @@ export const handler: Handler = async (event: HandlerEvent) => {
             }
         };
 
+        const isAdmin = userRole === 'admin' || userRole === 'superAdmin';
+
         // Create client if POST
         if (event.httpMethod === "POST") {
+            if (!isAdmin) return json(403, { error: "Solo los directores pueden crear clientes." });
             const body = parseBody();
             const { name, email, contactPerson, monthlyBudget, industry, country, brandProfileId } = body;
             
@@ -98,6 +110,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
         // Edit client if PUT
         if (event.httpMethod === "PUT") {
+            if (!isAdmin) return json(403, { error: "Solo los directores pueden editar clientes." });
             const body = parseBody();
             const { id, name, email, contactPerson, monthlyBudget, industry, country, brandProfileId } = body;
 
@@ -128,6 +141,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
         // Delete client if DELETE (Soft delete)
         if (event.httpMethod === "DELETE") {
+            if (!isAdmin) return json(403, { error: "Solo los directores pueden eliminar clientes." });
             const clientId = event.queryStringParameters?.id;
             if (!clientId) {
                 return json(400, { error: "Client ID is required" });
@@ -154,9 +168,24 @@ export const handler: Handler = async (event: HandlerEvent) => {
         }
 
         // Fetch clients
-        let clients = await runQuery(sql =>
-            sql`SELECT * FROM police_clients WHERE organization_id = ${orgId} AND (is_deleted IS NULL OR is_deleted = false) ORDER BY name ASC`
-        );
+        let clientIdsFilter: string[] | null = null;
+        if (!isAdmin) {
+            const asgs = await runQuery(sql => sql`
+                SELECT client_id FROM police_user_assignments 
+                WHERE user_id = ${userId} AND organization_id = ${orgId} AND client_id IS NOT NULL
+            `);
+            clientIdsFilter = (asgs || []).map(a => a.client_id);
+            if (clientIdsFilter!.length === 0) {
+                return json(200, []);
+            }
+        }
+
+        let clients = await runQuery(sql => {
+            if (clientIdsFilter) {
+                return sql`SELECT * FROM police_clients WHERE organization_id = ${orgId} AND id = ANY(${clientIdsFilter}) AND (is_deleted IS NULL OR is_deleted = false) ORDER BY name ASC`;
+            }
+            return sql`SELECT * FROM police_clients WHERE organization_id = ${orgId} AND (is_deleted IS NULL OR is_deleted = false) ORDER BY name ASC`;
+        });
 
         // Auto-create some default clients if none exist
         if (!clients || clients.length === 0) {

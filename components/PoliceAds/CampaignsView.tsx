@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Plus, CheckCircle2, AlertCircle, Loader2, Upload } from 'lucide-react';
+import { Plus, CheckCircle2, AlertCircle, Loader2, Upload, Sparkles } from 'lucide-react';
 import { CampaignForm } from './CampaignForm';
 import { CampaignsCSVUploader } from './CampaignsCSVUploader';
+import { CampaignsAIForecastUploader } from './CampaignsAIForecastUploader';
 import { AuthUser } from '../../types';
 
 export const CampaignsView: React.FC<{ campaigns: any[]; loading: boolean; currentUser: AuthUser }> = ({ campaigns, loading, currentUser }) => {
   const [showForm, setShowForm] = useState(false);
   const [showCSV, setShowCSV] = useState(false);
+  const [showAIAgent, setShowAIAgent] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -16,6 +18,13 @@ export const CampaignsView: React.FC<{ campaigns: any[]; loading: boolean; curre
           <p className="text-white/50 text-sm mt-1">Gestiona y valida tus campañas de paid media</p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowAIAgent(true)}
+            className="bg-[#4f6bff]/20 hover:bg-[#4f6bff]/30 text-[#4f6bff] border border-[#4f6bff]/30 font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
+          >
+            <Sparkles className="w-4 h-4" />
+            Importación Inteligente (IA)
+          </button>
           <button
             onClick={() => setShowCSV(true)}
             className="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
@@ -38,6 +47,14 @@ export const CampaignsView: React.FC<{ campaigns: any[]; loading: boolean; curre
           currentUser={currentUser}
           onSuccess={() => setShowCSV(false)}
           onCancel={() => setShowCSV(false)}
+        />
+      )}
+
+      {showAIAgent && (
+        <CampaignsAIForecastUploader
+          currentUser={currentUser}
+          onSuccess={() => setShowAIAgent(false)}
+          onCancel={() => setShowAIAgent(false)}
         />
       )}
 
