@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "insitu.company - Command Center",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "Real-time validation for ad campaign nomenclature and budgets",
   "permissions": [
     "activeTab",
@@ -13,6 +13,8 @@
   "host_permissions": [
     "https://insitu.company/*",
     "https://main--insitu-company-ads.netlify.app/*",
+    "https://policeads.insitu.company/*",
+    "https://main--insitu-police-ads.netlify.app/*",
     "https://business.facebook.com/*",
     "https://adsmanager.facebook.com/*",
     "https://ads.google.com/*",

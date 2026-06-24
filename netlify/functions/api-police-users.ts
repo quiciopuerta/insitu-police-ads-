@@ -13,16 +13,17 @@ function hashPassword(plain: string): string {
     return `scrypt:${salt}:${hash}`;
 }
 
-const json = (status: number, body: unknown) => ({
-    statusCode: status,
-    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
-    body: JSON.stringify(body),
-});
-
 let migrationsRan = false;
 
 export const handler: Handler = async (event: HandlerEvent) => {
-    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined), body: "" };
+    const origin = event.headers.origin || event.headers.Origin;
+    const json = (status: number, body: unknown) => ({
+        statusCode: status,
+        headers: getCorsHeaders(origin),
+        body: JSON.stringify(body),
+    });
+
+    if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: getCorsHeaders(origin), body: "" };
 
     if (!migrationsRan) {
         await runMigrations().catch(err => console.error("[POLICE-USERS] Migrations failed:", err));
