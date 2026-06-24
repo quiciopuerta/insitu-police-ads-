@@ -175,8 +175,13 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ currentUser, onSucce
             >
               <option value="FB">Meta Ads (FB)</option>
               <option value="GO">Google Ads (GO)</option>
-              <option value="TK">TikTok (TK)</option>
-              <option value="LI">LinkedIn (LI)</option>
+              <option value="DV">DV360 (DV)</option>
+              <option value="TK">TikTok Ads (TK)</option>
+              <option value="LI">LinkedIn Ads (LI)</option>
+              <option value="PI">Pinterest (PI)</option>
+              <option value="SC">Snapchat (SC)</option>
+              <option value="X">X Ads (X)</option>
+              <option value="AMZ">Amazon Ads (AMZ)</option>
             </select>
           </div>
 
@@ -314,11 +319,16 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ currentUser, onSucce
         <select
           value={formData.platform}
           onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-          className="w-full px-4 py-2 bg-[#0b0e17] border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-magenta outline-none"
         >
           <option value="meta">Meta Ads</option>
           <option value="google">Google Ads</option>
+          <option value="dv360">DV360</option>
           <option value="tiktok">TikTok Ads</option>
+          <option value="linkedin">LinkedIn Ads</option>
+          <option value="pinterest">Pinterest</option>
+          <option value="snapchat">Snapchat</option>
+          <option value="x">X Ads</option>
+          <option value="amazon">Amazon Ads</option>
         </select>
       </div>
 

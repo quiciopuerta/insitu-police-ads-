@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, X, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Upload, X, AlertCircle, CheckCircle2, Loader2, Download } from 'lucide-react';
 import { API_URL } from '../../utils/apiConfig';
 import { AuthUser } from '../../types';
 
@@ -134,7 +134,7 @@ export const CampaignsCSVUploader: React.FC<CampaignsCSVUploaderProps> = ({ curr
     setError(null);
 
     const accountObj = accounts.find(a => a.id === selectedAccount);
-    const organizationId = currentUser.organization_id || '00000000-0000-0000-0000-000000000000';
+    const organizationId = (currentUser as any).organization_id || '00000000-0000-0000-0000-000000000000';
 
     const payload = preview.map(row => ({
       id: crypto.randomUUID(),

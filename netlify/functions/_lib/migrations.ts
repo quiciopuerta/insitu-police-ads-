@@ -464,10 +464,18 @@ export async function runMigrations(): Promise<void> {
                 adset_rules JSONB DEFAULT '[]',
                 ad_rules JSONB DEFAULT '[]',
                 created_at BIGINT NOT NULL,
-                updated_at BIGINT NOT NULL,
-                UNIQUE(organization_id)
+                updated_at BIGINT NOT NULL
             )
         `;
+        const policyCols = [
+            `ALTER TABLE police_policies ADD COLUMN IF NOT EXISTS client_id TEXT REFERENCES police_clients(id) ON DELETE CASCADE`,
+            `ALTER TABLE police_policies ADD COLUMN IF NOT EXISTS platform_account_id TEXT REFERENCES police_platform_accounts(id) ON DELETE CASCADE`,
+            `ALTER TABLE police_policies DROP CONSTRAINT IF EXISTS police_policies_organization_id_key`
+        ];
+        for (const col of policyCols) {
+            await sql.unsafe(col).catch(() => {});
+        }
+
 
         // ── police_clients ─────────────────────────────────────────────────────
         await sql`

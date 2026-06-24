@@ -50,6 +50,8 @@ export const handler: Handler = async (event: HandlerEvent) => {
 
         if (event.httpMethod === "GET") {
             const orgId = event.queryStringParameters?.organization_id;
+            const clientId = event.queryStringParameters?.client_id;
+            const accountId = event.queryStringParameters?.platform_account_id;
             if (!orgId) return json(400, { error: "Missing organization_id" });
 
             // Ensure user has access to this organization
@@ -58,14 +60,35 @@ export const handler: Handler = async (event: HandlerEvent) => {
                 return json(403, { error: "Forbidden: You don't have access to this organization" });
             }
 
-            const policies = await runQuery(sql =>
-                sql`SELECT * FROM police_policies WHERE organization_id = ${orgId}`
-            );
+            if (event.queryStringParameters?.fetch_all === 'true') {
+                const allPolicies = await runQuery(sql => sql`SELECT * FROM police_policies WHERE organization_id = ${orgId}`);
+                return json(200, allPolicies || []);
+            }
 
-            // Return default policies if not found
-            if (!policies || policies.length === 0) {
+            // Fetch hierarchical policies (all matching this org)
+            const policies = await runQuery(sql => sql`SELECT * FROM police_policies WHERE organization_id = ${orgId}`);
+
+            // Determine the most specific policy
+            let bestPolicy = null;
+            if (policies && policies.length > 0) {
+                if (accountId) {
+                    bestPolicy = policies.find((p: any) => p.platform_account_id === accountId) || 
+                                 policies.find((p: any) => p.client_id === clientId && !p.platform_account_id) || 
+                                 policies.find((p: any) => !p.client_id && !p.platform_account_id);
+                } else if (clientId) {
+                    bestPolicy = policies.find((p: any) => p.client_id === clientId && !p.platform_account_id) || 
+                                 policies.find((p: any) => !p.client_id && !p.platform_account_id);
+                } else {
+                    bestPolicy = policies.find((p: any) => !p.client_id && !p.platform_account_id);
+                }
+            }
+
+            // Return default policies if not found at any level
+            if (!bestPolicy) {
                 return json(200, {
                     organization_id: orgId,
+                    client_id: clientId || null,
+                    platform_account_id: accountId || null,
                     campaign_rules: [
                         { type: 'pais', label: 'País', required: true },
                         { type: 'canal', label: 'Canal', required: true },
@@ -84,12 +107,12 @@ export const handler: Handler = async (event: HandlerEvent) => {
                 });
             }
 
-            return json(200, policies[0]);
+            return json(200, bestPolicy);
         }
 
         if (event.httpMethod === "POST") {
             const body = JSON.parse(event.body || "{}");
-            const { organization_id, campaign_rules, adset_rules, ad_rules } = body;
+            const { organization_id, client_id, platform_account_id, campaign_rules, adset_rules, ad_rules } = body;
 
             if (!organization_id) {
                 return json(400, { error: "Missing organization_id" });
@@ -102,23 +125,42 @@ export const handler: Handler = async (event: HandlerEvent) => {
             }
 
             const timestamp = Date.now();
-            const policyId = `pol_${timestamp}_${Math.random().toString(36).substring(2, 9)}`;
+            
+            // Check if policy exists for this specific level
+            let existing;
+            if (platform_account_id) {
+                existing = await runQuery(sql => sql`SELECT id FROM police_policies WHERE organization_id = ${organization_id} AND platform_account_id = ${platform_account_id}`);
+            } else if (client_id) {
+                existing = await runQuery(sql => sql`SELECT id FROM police_policies WHERE organization_id = ${organization_id} AND client_id = ${client_id} AND platform_account_id IS NULL`);
+            } else {
+                existing = await runQuery(sql => sql`SELECT id FROM police_policies WHERE organization_id = ${organization_id} AND client_id IS NULL AND platform_account_id IS NULL`);
+            }
 
-            await runQuery(sql => sql`
-                INSERT INTO police_policies (
-                    id, organization_id, campaign_rules, adset_rules, ad_rules, created_at, updated_at
-                ) VALUES (
-                    ${policyId}, ${organization_id}, 
-                    ${JSON.stringify(campaign_rules || [])}, 
-                    ${JSON.stringify(adset_rules || [])}, 
-                    ${JSON.stringify(ad_rules || [])}, 
-                    ${timestamp}, ${timestamp}
-                ) ON CONFLICT (organization_id) DO UPDATE SET
-                    campaign_rules = EXCLUDED.campaign_rules,
-                    adset_rules = EXCLUDED.adset_rules,
-                    ad_rules = EXCLUDED.ad_rules,
-                    updated_at = EXCLUDED.updated_at
-            `);
+            if (existing && existing.length > 0) {
+                // Update
+                await runQuery(sql => sql`
+                    UPDATE police_policies SET
+                        campaign_rules = ${JSON.stringify(campaign_rules || [])},
+                        adset_rules = ${JSON.stringify(adset_rules || [])},
+                        ad_rules = ${JSON.stringify(ad_rules || [])},
+                        updated_at = ${timestamp}
+                    WHERE id = ${existing[0].id}
+                `);
+            } else {
+                // Insert
+                const policyId = `pol_${timestamp}_${Math.random().toString(36).substring(2, 9)}`;
+                await runQuery(sql => sql`
+                    INSERT INTO police_policies (
+                        id, organization_id, client_id, platform_account_id, campaign_rules, adset_rules, ad_rules, created_at, updated_at
+                    ) VALUES (
+                        ${policyId}, ${organization_id}, ${client_id || null}, ${platform_account_id || null},
+                        ${JSON.stringify(campaign_rules || [])}, 
+                        ${JSON.stringify(adset_rules || [])}, 
+                        ${JSON.stringify(ad_rules || [])}, 
+                        ${timestamp}, ${timestamp}
+                    )
+                `);
+            }
 
             return json(200, { success: true });
         }

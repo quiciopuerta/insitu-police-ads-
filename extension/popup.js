@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!orgs || orgs.length === 0) return;
       
       const orgId = orgs[0].id;
-      const polRes = await fetchWithFallback(`/api-police-policies?organization_id=${orgId}`, {
+      const polRes = await fetchWithFallback(`/api-police-policies?organization_id=${orgId}&fetch_all=true`, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${token}` }
       });

@@ -79,6 +79,12 @@ const InsituValidator = {
       }
     }
 
+    // SANITIZADOR: Si las reglas llegaron corruptas como un array de caracteres 
+    // desde la DB antigua, filtramos para dejar solo objetos reales.
+    if (Array.isArray(rules)) {
+      rules = rules.filter(r => r && typeof r === 'object' && r.type && r.label);
+    }
+
     if (!rules || !Array.isArray(rules) || rules.length === 0) {
       return { isValid: true, reason: 'Nomenclatura libre. No hay reglas definidas.' };
     }
@@ -122,8 +128,36 @@ const InsituValidator = {
     return { isValid: true, reason: '¡Nomenclatura OK! Cumple las políticas.' };
   },
 
+  getCurrentPolicy() {
+    const policies = window.insituPolicies;
+    if (!policies) return {};
+
+    // If it's a single object (legacy/global), return it directly
+    if (!Array.isArray(policies)) return policies;
+
+    let accountId = null;
+    if (typeof window !== 'undefined' && window.location) {
+      const url = new URL(window.location.href);
+      if (url.hostname.includes('facebook.com') && url.searchParams.has('act')) {
+        accountId = url.searchParams.get('act');
+      } else if (url.hostname.includes('ads.google.com')) {
+        const cMatch = url.search.match(/__c=([0-9]+)/) || url.search.match(/customer=([0-9]+)/) || url.href.match(/ocid=([0-9]+)/);
+        if (cMatch) accountId = cMatch[1];
+      }
+    }
+
+    if (accountId) {
+      const specificPolicy = policies.find(p => p.platform_account_id === accountId);
+      if (specificPolicy) return specificPolicy;
+    }
+
+    // Fallback to global policy if no specific account match
+    const globalPolicy = policies.find(p => !p.client_id && !p.platform_account_id);
+    return globalPolicy || policies[0] || {};
+  },
+
   validateCampaignName(name) {
-    const policies = window.insituPolicies || {};
+    const policies = this.getCurrentPolicy();
     // Fallback a las reglas estáticas si no se han cargado las políticas
     const rules = policies.campaign_rules || [
         { type: 'pais', label: 'País' },
@@ -136,13 +170,13 @@ const InsituValidator = {
   },
 
   validateAdSetName(name) {
-    const policies = window.insituPolicies || {};
+    const policies = this.getCurrentPolicy();
     const rules = policies.adset_rules || [];
     return this.validateName(name, rules, 'grupo de anuncios');
   },
 
   validateAdName(name) {
-    const policies = window.insituPolicies || {};
+    const policies = this.getCurrentPolicy();
     const rules = policies.ad_rules || [];
     return this.validateName(name, rules, 'anuncio');
   },
@@ -153,6 +187,13 @@ const InsituValidator = {
    */
   async getBudgetLimit() {
     return new Promise((resolve) => {
+      const policy = this.getCurrentPolicy();
+      if (policy && policy.max_budget_usd) {
+         window.insituMaxBudget = Number(policy.max_budget_usd);
+         resolve(Number(policy.max_budget_usd));
+         return;
+      }
+
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         chrome.storage.local.get({ maxBudget: 500 }, (result) => {
           window.insituMaxBudget = Number(result.maxBudget);

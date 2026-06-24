@@ -148,36 +148,35 @@ const applyPersonalization = (text: string, user: any): string => {
 const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
-  const authHeader = event.headers["authorization"] || event.headers["Authorization"] || event.headers["x-admin-key"] || "";
-  const xUserId = event.headers["x-user-id"] || event.headers["X-User-Id"] || "";
-
-  let isAuthorized = ADMIN_SECRET !== "" && authHeader === `Bearer ${ADMIN_SECRET}`;
-
-  if (!isAuthorized && xUserId) {
-    const roleRows = await runQuery(async (sql) => await sql`SELECT role, username FROM users WHERE id = ${xUserId} LIMIT 1`);
-    if (roleRows && roleRows.length > 0) {
-      isAuthorized = roleRows[0].role === "admin" || roleRows[0].role === "superAdmin";
-      if (!isAuthorized) console.warn(`[ADMIN-NOTIFY] Unauthorized role ${roleRows[0].role} for user ${roleRows[0].username} attempting ${event.path}`);
-    } else {
-      console.warn(`[ADMIN-NOTIFY] Unknown user ID: ${xUserId}`);
-    }
-  }
-
-  if (!isAuthorized) {
-    console.warn(`[ADMIN-NOTIFY] 401 Unauthorized attempt from ${xUserId || 'MISSING_UID'} for path ${event.path}`);
-    return jsonResponse(401, { error: "Unauthorized" });
-  }
-
-  const rawPath = event.path || "";
-  const sub = rawPath
-    .replace(/\/\.netlify\/functions\/api-admin-notify/, "")
-    .replace("/api/admin/notify", "")
-    .replace("/api/admin-notify", "")
-    .replace(/^\//, "");
-
-  const body = event.body ? JSON.parse(event.body) : {};
-
   try {
+    const authHeader = event.headers["authorization"] || event.headers["Authorization"] || event.headers["x-admin-key"] || "";
+    const xUserId = event.headers["x-user-id"] || event.headers["X-User-Id"] || "";
+
+    let isAuthorized = ADMIN_SECRET !== "" && authHeader === `Bearer ${ADMIN_SECRET}`;
+
+    if (!isAuthorized && xUserId) {
+      const roleRows = await runQuery(async (sql) => await sql`SELECT role, username FROM users WHERE id = ${xUserId} LIMIT 1`);
+      if (roleRows && roleRows.length > 0) {
+        isAuthorized = roleRows[0].role === "admin" || roleRows[0].role === "superAdmin";
+        if (!isAuthorized) console.warn(`[ADMIN-NOTIFY] Unauthorized role ${roleRows[0].role} for user ${roleRows[0].username} attempting ${event.path}`);
+      } else {
+        console.warn(`[ADMIN-NOTIFY] Unknown user ID: ${xUserId}`);
+      }
+    }
+
+    if (!isAuthorized) {
+      console.warn(`[ADMIN-NOTIFY] 401 Unauthorized attempt from ${xUserId || 'MISSING_UID'} for path ${event.path}`);
+      return jsonResponse(401, { error: "Unauthorized" });
+    }
+
+    const rawPath = event.path || "";
+    const sub = rawPath
+      .replace(/\/\.netlify\/functions\/api-admin-notify/, "")
+      .replace("/api/admin/notify", "")
+      .replace("/api/admin-notify", "")
+      .replace(/^\//, "");
+
+    const body = event.body ? JSON.parse(event.body) : {};
     // ── Database Schema Migration (Only once per session) ──
     if (!tablesInitialized) {
       await runQuery(async (sql) => {
