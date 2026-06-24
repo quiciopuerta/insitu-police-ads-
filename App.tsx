@@ -76,7 +76,6 @@ import {
   PoliceAdsDashboard,
 } from "./components/LazyComponents";
 import { FeatureGate } from "./components/ui/FeatureGate";
-import ReloadPrompt from "./components/ReloadPrompt";
 import { AnalyticsProvider } from "./components/AnalyticsProvider";
 import { API_URL } from "./utils/apiConfig";
 import { seedBlogIfEmpty } from "./utils/blogSeedData";
@@ -992,7 +991,6 @@ const App = () => {
           comingSoon={globalSettings.comingSoon}
         />
       </Suspense>
-      <ReloadPrompt />
       {showOverlay && currentNotification && (
         <InAppOverlay 
           notification={currentNotification}
