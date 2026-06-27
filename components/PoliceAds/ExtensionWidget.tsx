@@ -120,8 +120,8 @@ export const ExtensionWidget: React.FC<{ currentUser: AuthUser; language?: strin
               </span>
             </h3>
             <p className="text-white/60 text-sm mt-1 max-w-md">
-              {status.isInstalled 
-                ? `La extensión está validando nomenclaturas directamente en Meta Ads y Google Ads (v${status.version || '1.0.15'}).`
+              {status.isInstalled
+                ? `La extensión está validando nomenclaturas directamente en Meta Ads y Google Ads (v${status.version || '1.0.23'}).`
                 : 'Instala la extensión en Chrome para validar los nombres de las campañas directamente en el Ads Manager.'}
             </p>
           </div>
@@ -142,13 +142,13 @@ export const ExtensionWidget: React.FC<{ currentUser: AuthUser; language?: strin
                 <AlertCircle className="w-4 h-4" />
                 Requiere instalación local
               </span>
-              <a 
-                href="/insitu-extension.zip" 
+              <a
+                href="/insitu-extension.zip"
                 download
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs rounded-md border border-white/10 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
-                Descargar Extensión (v1.0.15)
+                Descargar Extensión (v1.0.23)
               </a>
               <p className="text-[10px] text-white/40 text-right max-w-[160px]">
                 Descomprime e instala en chrome://extensions
