@@ -122,6 +122,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       if (response.ok) {
         const data = await response.json();
+        if (data) {
+          await chrome.storage.local.set({
+            insitu_user: data,
+            insitu_org_id: data.organizationId
+          });
+        }
         return data && data.email === email;
       }
       return false;
@@ -144,6 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!orgs || orgs.length === 0) return;
       
       const orgId = orgs[0].id;
+      await chrome.storage.local.set({ insitu_org_id: orgId });
       const polRes = await fetchWithFallback(`/api-police-policies?organization_id=${orgId}&fetch_all=true`, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -179,7 +186,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         await chrome.storage.local.set({
           insitu_user_token: token,
           insitu_user_email: email,
-          insitu_session_expiry: Date.now() + 24 * 60 * 60 * 1000
+          insitu_session_expiry: Date.now() + 24 * 60 * 60 * 1000,
+          insitu_user: result.user,
+          insitu_org_id: result.user ? result.user.organizationId : ''
         });
         await updatePolicies(token);
         showMainApp();
