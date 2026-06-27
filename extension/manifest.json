@@ -1,8 +1,11 @@
 {
   "manifest_version": 3,
   "name": "insitu.company - Command Center",
-  "version": "1.0.22",
-  "description": "Real-time validation for ad campaign nomenclature and budgets",
+  "short_name": "Police Ads",
+  "version": "1.0.23",
+  "description": "Validate ad campaign names and budgets in real-time across Google Ads, Meta, TikTok, LinkedIn & more",
+  "homepage_url": "https://insitu.company/",
+  "minimum_chrome_version": "120",
   "permissions": [
     "activeTab",
     "scripting",
@@ -34,7 +37,7 @@
     "default_path": "popup.html"
   },
   "action": {
-    "default_title": "insitu.company Validator"
+    "default_title": "insitu.company - Validate Campaigns"
   },
   "background": {
     "service_worker": "background.js"
@@ -74,9 +77,7 @@
     {
       "matches": [
         "https://insitu.company/*",
-        "https://main--insitu-company-ads.netlify.app/*",
-        "http://localhost:5173/*",
-        "http://localhost:8888/*"
+        "https://main--insitu-company-ads.netlify.app/*"
       ],
       "js": ["content-bridge.js"],
       "run_at": "document_idle"
@@ -85,9 +86,7 @@
   "externally_connectable": {
     "matches": [
       "https://insitu.company/*",
-      "https://main--insitu-company-ads.netlify.app/*",
-      "http://localhost:5173/*",
-      "http://localhost:8888/*"
+      "https://main--insitu-company-ads.netlify.app/*"
     ]
   },
   "web_accessible_resources": [
