@@ -3,7 +3,7 @@
   "name": "insitu.company - Command Center",
   "short_name": "Police Ads",
   "version": "1.0.23",
-  "description": "Validate ad campaign names and budgets in real-time across Google Ads, Meta, TikTok, LinkedIn & more",
+  "description": "Validate ad campaign names and budgets in real-time across major advertising platforms",
   "homepage_url": "https://insitu.company/",
   "minimum_chrome_version": "120",
   "permissions": [

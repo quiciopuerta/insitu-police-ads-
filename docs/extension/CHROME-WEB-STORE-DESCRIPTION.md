@@ -50,16 +50,13 @@ CARACTERÍSTICAS PRINCIPALES:
 
 💰 Protección de Presupuesto
 - Establece límites diarios seguros
-- Alertas automáticas en Meta Ads y Google Ads
-- Previene gastos accidentales
+- Alertas automáticas integradas en su panel de administración de anuncios
+- Previene gastos accidentales de forma local en el navegador
 
-PLATAFORMAS SOPORTADAS:
-- Google Ads
-- Meta Ads (Facebook/Instagram)
-- TikTok Ads
-- LinkedIn Ads
-- Pinterest Ads
-- Y más...
+🌐 Compatibilidad Multicanal
+- Soporte integrado para múltiples plataformas de publicidad
+- Funciona directamente sobre los flujos de creación de campañas
+- Actualizaciones automáticas de plantillas de validación
 
 SEGURIDAD Y PRIVACIDAD:
 - Solo usuarios autenticados de insitu.company
@@ -128,7 +125,7 @@ La extensión **no guarda** datos de tus campañas. Solo valida nomenclatura y p
 La extensión es **gratuita** para usuarios con suscripción activa en insitu.company.
 
 ### ¿Funciona con mi plataforma?
-Funciona con todas las principales plataformas de publicidad digital (Google Ads, Meta, TikTok, LinkedIn, Pinterest, etc.)
+Funciona de manera integrada con los principales administradores y redes de anuncios digitales del mercado de forma nativa.
 
 ### ¿Cómo obtengo soporte?
 Contacta a support@insitu.company o visita docs.insitu.company

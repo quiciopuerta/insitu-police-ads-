@@ -15,17 +15,17 @@ insitu.company - Campaign Validator
 Real-time validation for ad campaign nomenclature, budgets, and targeting structures across all major advertising platforms.
 
 ### Description (Descripción Detallada)
-The **insitu.company Campaign Validator** is an internal productivity and auditing tool for Media Planners and Digital Marketing Strategists. 
+The **insitu.company Campaign Validator** is a professional productivity and governance tool designed for media planners and digital marketing teams. 
 
-It ensures that ad campaigns launched across different advertising networks comply strictly with your agency's naming conventions, budget allocation rules, and structural guidelines before going live.
+This extension helps maintain consistency, prevent budget errors, and enforce strict naming conventions across your active digital marketing campaigns. By analyzing active ad creation sessions locally, it provides real-time feedback and alerts directly in your browser.
 
 **Key Features:**
-- **Real-Time Validation:** Overlays your ad manager dashboards (Google Ads, Meta Ads, TikTok, etc.) to evaluate campaign structures as you build them.
-- **Nomenclature Checks:** Automatically flags spelling errors, missing separators, or incorrect parameter usage in campaign, ad group, and ad names.
-- **Budget Guardrails:** Alerts users if daily or lifetime budgets exceed the predefined thresholds of your media plan.
-- **Cross-Platform Support:** Works seamlessly across Meta Business, Google Ads, TikTok Business, LinkedIn Ads, Snapchat, X Ads, Amazon Advertising, and more.
+- **Real-Time Validation:** Highlights configuration alerts, syntax errors, and nomenclature issues on page elements as you set up your campaigns.
+- **Nomenclature Enforcement:** Instantly checks campaign and ad group names against pre-defined organizational naming templates.
+- **Budget Safeguards:** Prevents accidental spend by flagging when entered budgets exceed the designated campaign limits.
+- **Centralized Settings:** Synchronizes validation rules automatically with your secure insitu.company team workspace.
 
-*Note: This extension is designed primarily for insitu.company strategists and agency partners. It requires an active connection to your INsitu AI dashboard rules.*
+*Note: This extension is designed exclusively for authorized agency partners and internal team members with an active workspace subscription.*
 
 ### Category (Categoría)
 Productivity (Productividad) o Developer Tools (Herramientas de Desarrollador).

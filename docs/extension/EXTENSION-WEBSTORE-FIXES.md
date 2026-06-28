@@ -91,6 +91,22 @@ const { user } = data;  // Reuse parsed data
 
 ---
 
+### Issue 5: Metadata Violation (Yellow Argon) - Keyword Stuffing ❌ → ✅
+
+**Problem**: The extension publication was rejected by Google under policy "Yellow Argon" due to keyword stuffing in the Chrome Web Store detailed description (listing 13 specific advertising platforms: Google Ads, Meta Ads, TikTok, LinkedIn, Pinterest, Snapchat, Twitter/X, Amazon Ads, Microsoft Ads, Yahoo, Criteo, Outbrain, and Taboola).
+
+**Solution**:
+- Updated `extension/manifest.json` to change the description to a compliant, generic version.
+- Rewrote `docs/extension/CHROMEWEBSTORE.md` (English listing copy) and `docs/extension/CHROME-WEB-STORE-DESCRIPTION.md` (Spanish listing copy) to describe compatibility generically ("major advertising platforms", "integrated ad dashboards") rather than enumerating brand names.
+- Removed brand name list from FAQs and main features sections.
+
+**Files Changed**:
+- `extension/manifest.json`
+- `docs/extension/CHROMEWEBSTORE.md`
+- `docs/extension/CHROME-WEB-STORE-DESCRIPTION.md`
+
+---
+
 ## URL Validation Summary
 
 | URL | Route | Component | Status |
@@ -154,5 +170,5 @@ The extension is now ready for publication!
 
 ---
 
-**Last Updated**: 2026-06-21
+**Last Updated**: 2026-06-28
 **Ready for Chrome Web Store Publication**: Yes ✅
