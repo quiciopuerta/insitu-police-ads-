@@ -9,6 +9,7 @@
 
   // Almacenar el límite de presupuesto actual
   let currentBudgetLimit = 500;
+  let isExtensionPaused = false;
   
   // Elementos rastreados para evitar duplicación de manejadores de eventos
   const activeListeners = new Set();
@@ -40,6 +41,23 @@
         if (changes.insitu_user_token) {
           window.insituUserToken = changes.insitu_user_token.newValue;
         }
+        if (changes.insitu_extension_paused) {
+          isExtensionPaused = changes.insitu_extension_paused.newValue;
+          if (isExtensionPaused) {
+            // Remove budget alert styling when paused
+            const existing = document.getElementById('insitu-danger-overlay');
+            if (existing) existing.remove();
+            
+            document.querySelectorAll('.insitu-governance-budget-badge').forEach(b => b.style.display = 'none');
+            document.querySelectorAll('input[type="number"], input[type="text"]').forEach(input => {
+              if (activeListeners.has(input)) {
+                input.style.borderColor = '';
+                input.style.borderWidth = '';
+                input.style.boxShadow = '';
+              }
+            });
+          }
+        }
       }
     });
   }
@@ -60,9 +78,10 @@
    */
   function initAdsObserver() {
     // Buscar inicialmente lo que ya esté en el DOM
-    scanDOMForGovernance();
+    if (!isExtensionPaused) scanDOMForGovernance();
 
     const observer = new MutationObserver((mutations) => {
+      if (isExtensionPaused) return;
       let shouldScan = false;
       for (const mutation of mutations) {
         if (mutation.addedNodes.length > 0) {
@@ -196,6 +215,13 @@
     }
 
     const validateBudget = () => {
+      if (isExtensionPaused) {
+        input.style.borderColor = '';
+        input.style.borderWidth = '';
+        input.style.boxShadow = '';
+        infoBadge.style.display = 'none';
+        return;
+      }
       const rawValue = input.value.replace(/[^0-9.]/g, '');
       const numValue = Number(rawValue);
 
@@ -242,6 +268,7 @@
     input.addEventListener('input', validateBudget);
     
     input.addEventListener('blur', () => {
+      if (isExtensionPaused) return;
       validateBudget();
       const rawValue = input.value.replace(/[^0-9.]/g, '');
       const numValue = Number(rawValue);

@@ -9,6 +9,7 @@
 
   // Almacenar el límite de presupuesto actual
   let currentBudgetLimit = 500;
+  let isExtensionPaused = false;
   
   // Elementos rastreados para evitar duplicación de manejadores de eventos
   const activeListeners = new Set();
@@ -19,10 +20,29 @@
   // Escuchar por si hay cambios en el storage durante la sesión
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'local' && changes.maxBudget) {
-        currentBudgetLimit = Number(changes.maxBudget.newValue);
-        console.log(`[insitu.company] Límite de presupuesto de Google Ads actualizado a $${currentBudgetLimit}`);
-        revalidateAllVisibleFields();
+      if (area === 'local') {
+        if (changes.maxBudget) {
+          currentBudgetLimit = Number(changes.maxBudget.newValue);
+          console.log(`[insitu.company] Límite de presupuesto de Google Ads actualizado a $${currentBudgetLimit}`);
+          revalidateAllVisibleFields();
+        }
+        if (changes.insitu_extension_paused) {
+          isExtensionPaused = changes.insitu_extension_paused.newValue;
+          if (isExtensionPaused) {
+            // Remove budget alert styling when paused
+            const existing = document.getElementById('insitu-google-danger-overlay');
+            if (existing) existing.remove();
+            
+            document.querySelectorAll('.insitu-governance-budget-badge').forEach(b => b.style.display = 'none');
+            document.querySelectorAll('input[type="number"], input[type="text"]').forEach(input => {
+              if (activeListeners.has(input)) {
+                input.style.borderColor = '';
+                input.style.borderWidth = '';
+                input.style.boxShadow = '';
+              }
+            });
+          }
+        }
       }
     });
   }
@@ -42,9 +62,10 @@
    * MutationObserver que busca elementos de input continuamente en Google Ads Portal
    */
   function initAdsObserver() {
-    scanDOMForGovernance();
+    if (!isExtensionPaused) scanDOMForGovernance();
 
     const observer = new MutationObserver((mutations) => {
+      if (isExtensionPaused) return;
       let shouldScan = false;
       for (const mutation of mutations) {
         if (mutation.addedNodes.length > 0) {
@@ -203,6 +224,13 @@
     }
 
     const validateBudget = () => {
+      if (isExtensionPaused) {
+        input.style.borderColor = '';
+        input.style.borderWidth = '';
+        input.style.boxShadow = '';
+        infoBadge.style.display = 'none';
+        return;
+      }
       const rawValue = input.value.replace(/[^0-9.]/g, '');
       const numValue = Number(rawValue);
 
@@ -249,6 +277,7 @@
     input.addEventListener('input', validateBudget);
 
     input.addEventListener('blur', () => {
+      if (isExtensionPaused) return;
       validateBudget();
       const rawValue = input.value.replace(/[^0-9.]/g, '');
       const numValue = Number(rawValue);

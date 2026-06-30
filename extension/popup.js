@@ -77,6 +77,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // PAUSE EXTENSION LOGIC
+  const btnPauseExt = document.getElementById('btn-pause-ext');
+  const badgeExt = document.getElementById('badge-ext');
+  
+  if (btnPauseExt && chrome.storage && chrome.storage.local) {
+    // Initial load
+    chrome.storage.local.get({ insitu_extension_paused: false }, (res) => {
+      updatePauseUI(res.insitu_extension_paused);
+    });
+
+    btnPauseExt.addEventListener('click', () => {
+      chrome.storage.local.get({ insitu_extension_paused: false }, (res) => {
+        const isPaused = !res.insitu_extension_paused;
+        chrome.storage.local.set({ insitu_extension_paused: isPaused }, () => {
+          updatePauseUI(isPaused);
+        });
+      });
+    });
+
+    function updatePauseUI(isPaused) {
+      if (isPaused) {
+        btnPauseExt.textContent = 'REANUDAR';
+        btnPauseExt.style.backgroundColor = '#ef4444';
+        btnPauseExt.style.borderColor = '#ef4444';
+        if (badgeExt) {
+          badgeExt.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+          badgeExt.style.borderColor = '#ef4444';
+          badgeExt.style.color = '#ef4444';
+          badgeExt.textContent = 'PAUSADO';
+        }
+      } else {
+        btnPauseExt.textContent = 'PAUSAR';
+        btnPauseExt.style.backgroundColor = 'transparent';
+        btnPauseExt.style.borderColor = 'var(--color-slate-200)';
+        if (badgeExt) {
+          badgeExt.style.backgroundColor = 'rgba(79, 70, 229, 0.15)';
+          badgeExt.style.borderColor = 'var(--color-indigo)';
+          badgeExt.style.color = '#818cf8';
+          badgeExt.textContent = 'EXT';
+        }
+      }
+    }
+  }
+
   // AUTH LOGIC
   const authScreen = document.getElementById('auth-screen');
   const mainApp = document.getElementById('main-app');

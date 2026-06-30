@@ -736,6 +736,18 @@ const InsituValidator = {
     `;
     document.head.appendChild(style);
 
+    let isExtensionPaused = false;
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get({ insitu_extension_paused: false }, (res) => {
+        isExtensionPaused = res.insitu_extension_paused;
+      });
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.insitu_extension_paused) {
+          isExtensionPaused = changes.insitu_extension_paused.newValue;
+        }
+      });
+    }
+
     const isPublishButton = (el) => {
       if (!el || typeof el.getAttribute !== 'function') return false;
       const text = (el.innerText || '').toLowerCase();
@@ -749,7 +761,7 @@ const InsituValidator = {
     };
 
     const updateButtons = () => {
-      const isInvalid = window.insituErrorsCount > 0;
+      const isInvalid = !isExtensionPaused && window.insituErrorsCount > 0;
       const buttons = document.querySelectorAll('button, [role="button"], [data-testid*="publish"], [data-testid*="confirm"]');
       buttons.forEach(btn => {
         if (isPublishButton(btn)) {
@@ -765,6 +777,7 @@ const InsituValidator = {
     setInterval(updateButtons, 1000);
 
     document.addEventListener('click', (e) => {
+      if (isExtensionPaused) return;
       if (window.insituErrorsCount > 0) {
         const btn = e.target.closest('button, [role="button"], [data-testid*="publish"], [data-testid*="confirm"]');
         if (btn && isPublishButton(btn)) {

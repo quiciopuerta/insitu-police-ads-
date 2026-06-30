@@ -30,17 +30,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// Listener para cambios en tabs
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete') {
-    // Verificar si es una página de Meta Ads o Google Ads
-    if (tab.url && (tab.url.includes('facebook.com/adsmanager') ||
-      tab.url.includes('adsmanager.facebook.com') ||
-      tab.url.includes('ads.google.com'))) {
-      console.log('[insitu.company] Página de ads detectada');
-    }
-  }
-});
+
 
 // Listener para mensajes externos (desde la web app)
 chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {

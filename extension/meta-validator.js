@@ -7,6 +7,28 @@
 
 console.log('%c[insitu.company] Meta Validator loaded', 'color: #E5007D; font-weight: bold;');
 
+let isExtensionPaused = false;
+if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+  chrome.storage.local.get({ insitu_extension_paused: false }, (res) => {
+    isExtensionPaused = res.insitu_extension_paused;
+  });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.insitu_extension_paused) {
+      isExtensionPaused = changes.insitu_extension_paused.newValue;
+      if (isExtensionPaused) {
+        // Clear all styles when paused
+        const badge = getGlobalBadge();
+        if (badge) badge.style.display = 'none';
+        document.querySelectorAll('input[data-insitu-monitored="true"], textarea[data-insitu-monitored="true"]').forEach(input => {
+          input.style.borderColor = '';
+          input.style.borderWidth = '';
+          input.style.boxShadow = '';
+        });
+      }
+    }
+  });
+}
+
 let monitoredInputs = new WeakSet();
 const inputValidationStates = new Map();
 
@@ -52,13 +74,15 @@ function validateAndStyle(input) {
     const value = input.value;
     const badge = getGlobalBadge();
 
-    if (!value) {
+    if (!value || isExtensionPaused) {
       input.style.borderColor = '';
       input.style.borderWidth = '';
       input.style.boxShadow = '';
       badge.style.display = 'none';
-      inputValidationStates.delete(input);
-      updateGlobalErrors();
+      if (!value) {
+        inputValidationStates.delete(input);
+        updateGlobalErrors();
+      }
       return;
     }
 
@@ -142,6 +166,8 @@ function attachListeners(input) {
 }
 
 function scanForInputs() {
+  if (isExtensionPaused) return;
+
   try {
     const inputs = document.querySelectorAll(
       'input[data-testid*="name"]:not([data-insitu-monitored]),' +
