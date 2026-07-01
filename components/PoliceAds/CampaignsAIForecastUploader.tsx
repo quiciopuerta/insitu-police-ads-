@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, X, AlertCircle, CheckCircle2, Loader2, Sparkles, ClipboardPaste } from 'lucide-react';
+import { Upload, X, AlertCircle, CheckCircle2, Loader2, Sparkles, ClipboardPaste, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { API_URL } from '../../utils/apiConfig';
 import { AuthUser } from '../../types';
 import { parseForecastAgent, ParsedCampaign } from '../../services/ai/forecastAnalysisService';
@@ -22,6 +22,7 @@ export const CampaignsAIForecastUploader: React.FC<CampaignsAIForecastUploaderPr
   
   const [analyzing, setAnalyzing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showRegulations, setShowRegulations] = useState(false);
 
   useEffect(() => {
     fetch(`${API_URL}/api-police-clients`, {
@@ -75,10 +76,14 @@ export const CampaignsAIForecastUploader: React.FC<CampaignsAIForecastUploaderPr
     setUploading(true);
     setError(null);
 
+    const organizationId = (currentUser as any).organization_id || (currentUser as any).organizationId || '00000000-0000-0000-0000-000000000000';
+
     // Transform to expected API payload
     const payload = preview.map(row => ({
+      id: crypto.randomUUID(),
+      organization_id: organizationId,
       client_id: selectedClient,
-      account_id: selectedAccount,
+      platform_account_id: selectedAccount,
       name: row.name,
       platform: row.platform,
       budget: Number(row.budget) || 0,
@@ -187,6 +192,50 @@ export const CampaignsAIForecastUploader: React.FC<CampaignsAIForecastUploaderPr
             {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             {analyzing ? 'Analizando...' : 'Analizar con IA'}
           </button>
+
+          <div className="mt-6 border border-white/10 rounded-lg overflow-hidden bg-white/[0.02]">
+            <button 
+              onClick={() => setShowRegulations(!showRegulations)}
+              type="button"
+              className="w-full flex items-center justify-between p-3 text-sm font-semibold text-white/80 hover:text-white hover:bg-white/5 transition-all outline-none"
+            >
+              <span className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#4f6bff]" />
+                Reglamento de Políticas de Campaña
+              </span>
+              {showRegulations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            {showRegulations && (
+              <div className="p-4 border-t border-white/10 text-xs text-white/60 space-y-3 bg-[#0c0f1d] leading-relaxed">
+                <div>
+                  <p className="font-bold text-white mb-1">📐 Estándar de Nomenclatura</p>
+                  <p>Toda campaña debe seguir rigurosamente la estructura: <code className="text-magenta font-mono font-bold">PAÍS_CANAL_OBJETIVO_PRODUCTO_AÑO</code>.</p>
+                  <p className="mt-1">Ejemplo válido: <code className="text-green-400 font-mono">EC_FB_CONV_BlackFriday_2026</code></p>
+                </div>
+                <div>
+                  <p className="font-bold text-white mb-1">🏷️ Códigos de Canal Autorizados</p>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1 font-mono text-[10px]">
+                    <span>• FB: Meta Ads (Facebook)</span>
+                    <span>• GO: Google Ads</span>
+                    <span>• TK: TikTok Ads</span>
+                    <span>• LI: LinkedIn Ads</span>
+                    <span>• PI: Pinterest Ads</span>
+                    <span>• SC: Snapchat Ads</span>
+                    <span>• XAds: X/Twitter Ads</span>
+                    <span>• AMZ: Amazon Ads</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-bold text-white mb-1">💰 Control de Presupuesto Diario</p>
+                  <p>Cualquier presupuesto diario ingresado que supere el límite máximo configurado para la cuenta será marcado automáticamente como <span className="text-red-400 font-bold">EXCESO DE PRESUPUESTO</span> por la extensión.</p>
+                </div>
+                <div>
+                  <p className="font-bold text-white mb-1">🧠 Inferencia Inteligente</p>
+                  <p>El Agente de IA intentará extraer el país, canal, objetivo e identificar el producto de tus datos en bruto, pero si la estructura de nomenclatura generada contiene algún error, el sistema de auditoría lo marcará como <span className="text-yellow-400 font-bold">INVÁLIDO</span> para que lo corrijas antes de publicar.</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="mb-6">
