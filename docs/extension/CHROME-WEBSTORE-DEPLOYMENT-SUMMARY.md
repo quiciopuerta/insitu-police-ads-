@@ -51,8 +51,6 @@
 ### ✅ Permissions Justified
 All host permissions documented:
 - **activeTab** - For real-time validation in ads platforms
-- **scripting** - For injecting validator code
-- **tabs** - For detecting which platform user is on
 - **storage** - For saving auth token and settings
 
 ### ✅ Privacy Compliance

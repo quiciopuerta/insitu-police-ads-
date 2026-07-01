@@ -279,7 +279,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const urlStr = activeTab.url || '';
       
       // Setup parser
-      const url = new URL(urlStr);
+      let url;
+      try {
+        url = new URL(urlStr);
+      } catch (e) {
+        // Ignorar URLs inválidas como chrome:// o vacías
+        return;
+      }
       const params = new URLSearchParams(url.search);
 
       let platform = 'Unknown';

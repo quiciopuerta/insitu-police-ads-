@@ -61,12 +61,6 @@ El equipo de revisión de Google **rechazará la extensión** si no usas una raz
 ### `activeTab`
 > "Required to capture the current active session state of the ad manager dashboard so that the validator popup can temporarily request structure details from the user's view without persistent tracking."
 
-### `tabs`
-> "Required to verify the active URL structure and query parameters of the current tab. This ensures the extension only executes its validation logic and injects its UI when the user is strictly within a supported campaign creation flow (e.g., /campaigns/create/)."
-
-### `scripting`
-> "Required to dynamically inject our validation scripts (google-validator.js, meta-validator.js) and config payloads into the advertising platform's DOM. This allows the extension to read the inputted campaign names and highlight errors directly on the platform's input fields."
-
 ### `storage`
 > "Required to store the user's secure session tokens, basic preferences, and nomenclature template configurations locally so they persist across browser sessions without requiring constant re-authentication."
 

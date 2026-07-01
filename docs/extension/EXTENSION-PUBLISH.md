@@ -93,8 +93,6 @@ Los siguientes assets ya están listos en `/extension/store-assets/`:
    - **Minimum Chrome version**: 120 (recomendado)
    - **Permissions**: Revisar que solo incluya lo necesario:
      - `activeTab`: Para inyectar validadores
-     - `scripting`: Para ejecutar validadores
-     - `tabs`: Para gestionar pestañas
      - Host permissions: Solo dominios de publicidad
 
 7. **Submit for review**

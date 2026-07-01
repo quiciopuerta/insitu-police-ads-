@@ -105,6 +105,36 @@ const { user } = data;  // Reuse parsed data
 - `docs/extension/CHROMEWEBSTORE.md`
 - `docs/extension/CHROME-WEB-STORE-DESCRIPTION.md`
 
+### Issue 6: Permission Violation (Purple Potassium) - Unused Scripting Permission ❌ → ✅
+
+**Problem**: The extension was rejected by Google under policy "Purple Potassium" for requesting the `scripting` permission in `manifest.json` without actively using the `chrome.scripting` API in the codebase.
+
+**Solution**:
+- Removed the `"scripting"` entry from the `"permissions"` array in `extension/manifest.json`.
+- Cleaned up the documentation references and dashboard copy to remove all references and justifications for the unused `scripting` permission.
+
+**Files Changed**:
+- `extension/manifest.json`
+- `docs/extension/CHROMEWEBSTORE.md`
+- `docs/extension/CHROME-WEBSTORE-DEPLOYMENT-SUMMARY.md`
+- `docs/extension/EXTENSION-PUBLISH.md`
+
+### Issue 7: Permission Minimization - Unused Tabs Permission ❌ → ✅
+
+**Problem**: Following Chrome Web Store guidelines for request minimization, the extension was audit-optimized to remove the `tabs` permission, as its only usage in `background.js` was for non-critical logging.
+
+**Solution**:
+- Removed the unused `chrome.tabs.onUpdated` listener in `extension/background.js`.
+- Removed `"tabs"` from the `"permissions"` array in `extension/manifest.json`.
+- Removed references and justifications for the `tabs` permission in documentation.
+
+**Files Changed**:
+- `extension/background.js`
+- `extension/manifest.json`
+- `docs/extension/CHROMEWEBSTORE.md`
+- `docs/extension/CHROME-WEBSTORE-DEPLOYMENT-SUMMARY.md`
+- `docs/extension/EXTENSION-PUBLISH.md`
+
 ---
 
 ## URL Validation Summary
@@ -170,5 +200,5 @@ The extension is now ready for publication!
 
 ---
 
-**Last Updated**: 2026-06-28
+**Last Updated**: 2026-06-30
 **Ready for Chrome Web Store Publication**: Yes ✅
