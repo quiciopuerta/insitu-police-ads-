@@ -134,10 +134,14 @@ async function retryWithBackoff<T>(
         } catch (e: any) {
             lastError = e;
 
-            // Credential errors are fatal — stop immediately so the caller gets a
-            // meaningful 401/403 and doesn't burn retries (or show a misleading 500).
+            // Credential errors are fatal for the specific key — cycle to the next key if available in the pool.
             if (isCredentialError(e)) {
-                console.error(`[Gemini] Credential error — stopping retries: ${e.message}`);
+                console.error(`[Gemini] Credential error on key ...${currentKey?.slice(-4)}: ${e.message}`);
+                if (keyPool && keyPool.length > 1 && keyIndex < keyPool.length - 1) {
+                    keyIndex++;
+                    console.warn(`[Gemini] Rotating key due to credential failure. Trying next key (attempt ${attempt}/${maxAttempts})`);
+                    continue;
+                }
                 throw e;
             }
 
@@ -186,7 +190,14 @@ export async function callGeminiApi(params: {
 }) {
     const defaultKeyPool = getGeminiKeyPool();
     const keyPool = params.apiKey ? [params.apiKey, ...defaultKeyPool] : defaultKeyPool;
-    const model = params.model || DEFAULT_MODEL;
+    let model = params.model || DEFAULT_MODEL;
+
+    // Normalizar de forma robusta modelos 2.5 inexistentes a 2.0
+    if (model.startsWith("gemini-2.5-flash-thinking")) {
+        model = "gemini-2.0-flash-thinking-exp";
+    } else if (model === "gemini-2.5-flash") {
+        model = "gemini-2.0-flash";
+    }
 
     // The REST API (v1beta) expects snake_case for top-level fields and parts.
     const mapContents = (items: any[]): any[] => {
@@ -434,5 +445,5 @@ export const getGenAI = () => {
     return new GoogleGenAI({ apiKey: key });
 };
 
-export const DEFAULT_MODEL = "gemini-2.5-flash";
-export const VISION_MODEL = "gemini-2.5-flash";
+export const DEFAULT_MODEL = "gemini-2.0-flash";
+export const VISION_MODEL = "gemini-2.0-flash";

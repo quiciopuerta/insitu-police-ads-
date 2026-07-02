@@ -4,6 +4,8 @@ import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { checkRateLimit, getClientIp } from "./_lib/rateLimiter";
 import { runQuery } from "./_lib/db";
 import { callGeminiApi } from "./_lib/gemini";
+import { callDeepSeekApi } from "./_lib/deepseek";
+import { callGlmApi } from "./_lib/glm";
 import crypto from "crypto";
 
 export const handler: Handler = async (event: HandlerEvent, _ctx: HandlerContext) => {
@@ -111,77 +113,76 @@ Menciona advertencias críticas de rendimiento, volumen de conversiones, presupu
 Instrucciones detalladas de implementación paso a paso en formato Markdown.
 [/INSTRUCTIONS]`;
 
-        // callGeminiApi() already handles retry + key rotation internally
-        // Custom API key from client is optional — if not provided, uses server defaults
+        // DeepSeek is set as the primary engine for high-reliability script generation.
+        // Falls back to Gemini and Zhipu respectively if DeepSeek is unavailable.
         let aiResponseData: any;
+        const customApiKey = event.headers["x-gemini-key"] || event.headers["X-Gemini-Key"];
+
         try {
-            console.log(`[api-generate-ads-script] Calling Gemini API for script generation...`);
-            const geminiParams: any = {
-                model: "gemini-2.5-flash",
+            console.log(`[api-generate-ads-script] Calling DeepSeek API for script generation...`);
+            aiResponseData = await callDeepSeekApi({
+                model: "deepseek-chat",
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
                 systemInstruction: system,
-                tools: [{ google_search: {} }],
                 generationConfig: {
                     temperature: 0.2,
-                    maxOutputTokens: 4096,
-                    thinkingConfig: { thinkingBudget: 0 }
+                    maxOutputTokens: 4000
                 }
-            };
-
-            // Only add apiKey if provided by client
-            const customApiKey = event.headers["x-gemini-key"] || event.headers["X-Gemini-Key"];
-            if (customApiKey) {
-                geminiParams.apiKey = customApiKey;
-            }
-
-            aiResponseData = await callGeminiApi(geminiParams);
-            console.log(`[api-generate-ads-script] Gemini response received successfully`);
-        } catch (geminiError: any) {
-            console.error(`[api-generate-ads-script] Gemini API failed after all retries:`, {
-                message: geminiError.message,
-                status: geminiError.status,
-                apiMessage: geminiError.apiMessage,
-                isCredentialError: geminiError.isCredentialError,
-                isTimeout: geminiError.isTimeout,
-                isQuota: geminiError.isQuota
             });
-
-            // Credential error = broken config
-            if (geminiError.isCredentialError) {
-                return {
-                    statusCode: 401,
-                    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
-                    body: JSON.stringify({
-                        error: "API configuration error. Contact support.",
-                        details: process.env.NODE_ENV === 'development' ? geminiError.message : undefined
-                    })
+            console.log(`[api-generate-ads-script] DeepSeek response received successfully`);
+        } catch (deepseekError: any) {
+            console.warn(`[api-generate-ads-script] DeepSeek API failed. Attempting fallback to Gemini...`, deepseekError.message);
+            
+            try {
+                // Fallback 1: Gemini
+                const geminiParams: any = {
+                    model: "gemini-2.0-flash",
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    systemInstruction: system,
+                    tools: [{ google_search: {} }],
+                    generationConfig: {
+                        temperature: 0.2,
+                        maxOutputTokens: 4096,
+                        thinkingConfig: { thinkingBudget: 0 }
+                    }
                 };
+                if (customApiKey) {
+                    geminiParams.apiKey = customApiKey;
+                }
+                aiResponseData = await callGeminiApi(geminiParams);
+                console.log(`[api-generate-ads-script] Gemini fallback completed successfully`);
+            } catch (geminiError: any) {
+                console.warn(`[api-generate-ads-script] Gemini fallback failed. Attempting fallback to Zhipu (GLM)...`, geminiError.message);
+                
+                try {
+                    // Fallback 2: Zhipu (GLM)
+                    aiResponseData = await callGlmApi({
+                        model: "glm-4",
+                        contents: [{ role: "user", parts: [{ text: prompt }] }],
+                        systemInstruction: system,
+                        generationConfig: {
+                            temperature: 0.2,
+                            maxOutputTokens: 4000
+                        }
+                    });
+                    console.log(`[api-generate-ads-script] Zhipu fallback completed successfully`);
+                } catch (glmError: any) {
+                    console.error(`[api-generate-ads-script] All LLM providers failed (DeepSeek, Gemini, Zhipu)`);
+                    
+                    return {
+                        statusCode: 503,
+                        headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
+                        body: JSON.stringify({
+                            error: "Todos los servicios de IA fallaron temporalmente. Por favor, verifica tus llaves de API o contacta a soporte.",
+                            details: {
+                                deepseek: deepseekError.message,
+                                gemini: geminiError.message,
+                                zhipu: glmError.message
+                            }
+                        })
+                    };
+                }
             }
-
-            // Timeout = Gemini too slow
-            if (geminiError.isTimeout) {
-                return {
-                    statusCode: 504,
-                    headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
-                    body: JSON.stringify({
-                        error: "AI service timeout. Try again with a simpler request.",
-                        details: process.env.NODE_ENV === 'development' ? geminiError.message : undefined
-                    })
-                };
-            }
-
-            // Everything else (429, 5xx, network) = service unavailable
-            return {
-                statusCode: 503,
-                headers: getCorsHeaders(typeof event !== 'undefined' && (event as any).headers ? (event as any).headers.origin || (event as any).headers.Origin : undefined),
-                body: JSON.stringify({
-                    error: "AI service temporarily unavailable. Please try again in a few moments.",
-                    details: process.env.NODE_ENV === 'development' ? {
-                        message: geminiError.message,
-                        status: geminiError.status
-                    } : undefined
-                })
-            };
         }
 
         const aiText = aiResponseData?.candidates?.[0]?.content?.parts?.[0]?.text || "";

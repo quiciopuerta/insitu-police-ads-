@@ -11,12 +11,12 @@ export const AI_MODELS = {
    * Primary model for all analytical tasks (Search, Image, Video Audit).
    * Stable version is preferred over experimental/thinking models to ensure uptime.
    */
-  PRIMARY_ANALYSIS: "gemini-2.5-flash",
+  PRIMARY_ANALYSIS: "gemini-2.0-flash",
 
   /**
    * Model for content generation (Ad Copy, Strategy plans).
    */
-  CONTENT_GENERATION: "gemini-2.5-flash",
+  CONTENT_GENERATION: "gemini-2.0-flash",
 
   /**
    * Specialized model for long-context understanding (if needed).
@@ -27,7 +27,7 @@ export const AI_MODELS = {
    * Experimental model for reasoning/thinking.
    * WARNING: Use only for non-critical features as availability is not guaranteed.
    */
-  EXPERIMENTAL_REASONING: "gemini-2.5-flash-thinking-exp-01-21",
+  EXPERIMENTAL_REASONING: "gemini-2.0-flash-thinking-exp",
 
   /**
    * OpenRouter Free Models

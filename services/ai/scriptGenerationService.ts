@@ -1,5 +1,5 @@
 import { authService } from '../auth/authService';
-import { buildAbsoluteUrl } from '../../utils/apiConfig';
+import { adminFetch } from '../../utils/apiConfig';
 import { keyRotationService } from './keyRotationService';
 
 export interface GenerateScriptRequest {
@@ -34,11 +34,9 @@ export const scriptGenerationService = {
     try {
       const apiKey = keyRotationService.getNextKey();
       
-      const res = await fetch(buildAbsoluteUrl('/.netlify/functions/api-generate-ads-script'), {
+      const res = await adminFetch('/.netlify/functions/api-generate-ads-script', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': user.id,
           ...(apiKey ? { 'X-Gemini-Key': apiKey } : {})
         },
         body: JSON.stringify(request)

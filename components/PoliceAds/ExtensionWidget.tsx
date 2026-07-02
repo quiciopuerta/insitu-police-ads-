@@ -18,6 +18,55 @@ export const ExtensionWidget: React.FC<{ currentUser: AuthUser; language?: strin
   });
   const [loading, setLoading] = useState(true);
 
+  // UTM Generator States
+  const [utmBaseUrl, setUtmBaseUrl] = useState('');
+  const [utmCampaignName, setUtmCampaignName] = useState('');
+  const [utmCopied, setUtmCopied] = useState(false);
+
+  const buildUtmUrl = () => {
+    if (!utmBaseUrl || !utmCampaignName) return '';
+
+    // Derivar fuente/canal del nombre de la campaña
+    const lowerName = utmCampaignName.toLowerCase();
+    let source = 'cpc';
+    let medium = 'cpc';
+
+    if (lowerName.includes('_fb_') || lowerName.includes('_facebook_')) {
+      source = 'facebook';
+      medium = 'social_ad';
+    } else if (lowerName.includes('_go_') || lowerName.includes('_google_') || lowerName.includes('_sem_') || lowerName.includes('_sea_')) {
+      source = 'google';
+      medium = 'cpc';
+    } else if (lowerName.includes('_tk_') || lowerName.includes('_tiktok_')) {
+      source = 'tiktok';
+      medium = 'social_ad';
+    } else if (lowerName.includes('_ln_') || lowerName.includes('_linkedin_')) {
+      source = 'linkedin';
+      medium = 'social_ad';
+    } else if (lowerName.includes('_yt_') || lowerName.includes('_youtube_')) {
+      source = 'youtube';
+      medium = 'video_ad';
+    } else {
+      // Fallback: tratar de extraer el segundo segmento si tiene guiones bajos
+      const segments = utmCampaignName.split('_');
+      if (segments.length > 1) {
+        source = segments[1].toLowerCase();
+      }
+    }
+
+    try {
+      const url = new URL(utmBaseUrl);
+      url.searchParams.set('utm_source', source);
+      url.searchParams.set('utm_medium', medium);
+      url.searchParams.set('utm_campaign', utmCampaignName);
+      return url.toString();
+    } catch (e) {
+      // Si la URL no es válida de forma absoluta, construirla de forma relativa/sencilla
+      const separator = utmBaseUrl.includes('?') ? '&' : '?';
+      return `${utmBaseUrl}${separator}utm_source=${source}&utm_medium=${medium}&utm_campaign=${encodeURIComponent(utmCampaignName)}`;
+    }
+  };
+
   useEffect(() => {
     // Check if extension is installed by listening for message
     const handleMessage = (event: MessageEvent) => {
@@ -156,6 +205,55 @@ export const ExtensionWidget: React.FC<{ currentUser: AuthUser; language?: strin
             </div>
           )}
         </div>
+      </div>
+
+      {/* UTM Generator Section */}
+      <div className="mt-6 pt-6 border-t border-white/5 space-y-4">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-white/60 flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-[#4f6bff]" />
+          Generador de URLs con UTMs de Campaña
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase text-white/40">URL de Destino (Landing Page)</label>
+            <input
+              type="text"
+              placeholder="https://ejemplo.com/landing"
+              value={utmBaseUrl}
+              onChange={(e) => setUtmBaseUrl(e.target.value)}
+              className="w-full bg-[#1a1f36]/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#4f6bff]"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase text-white/40">Nombre de Campaña Validada</label>
+            <input
+              type="text"
+              placeholder="EC_FB_CONV_Seguros_2026"
+              value={utmCampaignName}
+              onChange={(e) => setUtmCampaignName(e.target.value)}
+              className="w-full bg-[#1a1f36]/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#4f6bff]"
+            />
+          </div>
+        </div>
+
+        {utmBaseUrl && utmCampaignName && (
+          <div className="bg-black/20 border border-white/5 rounded-xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="space-y-0.5 truncate max-w-xl">
+              <span className="text-[9px] uppercase font-black tracking-widest text-[#4f6bff]">URL Final con Parámetros UTM</span>
+              <p className="font-mono text-xs text-[#2edb8e] truncate select-all">{buildUtmUrl()}</p>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(buildUtmUrl());
+                setUtmCopied(true);
+                setTimeout(() => setUtmCopied(false), 2000);
+              }}
+              className="px-4 py-2 bg-[#4f6bff]/20 hover:bg-[#4f6bff]/30 text-[#4f6bff] text-xs font-semibold rounded-lg transition-colors whitespace-nowrap self-end md:self-auto"
+            >
+              {utmCopied ? '¡Copiado!' : 'Copiar URL'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

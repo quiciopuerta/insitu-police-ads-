@@ -303,7 +303,7 @@ const App = () => {
           } else {
             window.history.replaceState({}, "", "/");
             setIsAdminOpen(false);
-            setActiveTab("analyzer");
+            setActiveTab("police-ads");
           }
         }
       } else {
@@ -709,7 +709,7 @@ const App = () => {
           )}
 
           {(activeTab === "image-ai" || activeTab === "image-audit") && (!currentUser ? (
-              <AuthGate onLogin={handleLogin} onCancel={() => setActiveTab("analyzer")} language={language} />
+              <AuthGate onLogin={handleLogin} onCancel={() => setActiveTab("police-ads")} language={language} />
             ) : (
               <FeatureGate
                 user={currentUser}
@@ -728,7 +728,7 @@ const App = () => {
               </FeatureGate>
             ))}
           {(activeTab === "video-ai" || activeTab === "video-audit") && (!currentUser ? (
-              <AuthGate onLogin={handleLogin} onCancel={() => setActiveTab("analyzer")} language={language} />
+              <AuthGate onLogin={handleLogin} onCancel={() => setActiveTab("police-ads")} language={language} />
             ) : (
               <FeatureGate
                 user={currentUser}
@@ -747,7 +747,7 @@ const App = () => {
               </FeatureGate>
             ))}
           {activeTab === "brand-identity" && (!currentUser ? (
-              <AuthGate onLogin={handleLogin} onCancel={() => setActiveTab("analyzer")} language={language} />
+              <AuthGate onLogin={handleLogin} onCancel={() => setActiveTab("police-ads")} language={language} />
             ) : (
               <FeatureGate
                 user={currentUser}
@@ -793,7 +793,7 @@ const App = () => {
                 currentUser={currentUser} 
                 language={language} 
                 onLogin={handleLogin} 
-                onCancel={() => setActiveTab("analyzer")} 
+                onCancel={() => setActiveTab("police-ads")} 
                 onAudit={(ad) => {
                   setPrefilledMedia({ url: ad.url, type: ad.type as any });
                   setFeatureTab(ad.type === 'video' ? 'video-audit' : 'image-audit');
@@ -820,7 +820,7 @@ const App = () => {
                 currentUser={currentUser} 
                 language={language} 
                 onLogin={handleLogin} 
-                onCancel={() => setActiveTab("analyzer")} 
+                onCancel={() => setActiveTab("police-ads")} 
                 history={history}
                 onSaveHistory={addHistoryItem}
               />
@@ -864,7 +864,7 @@ const App = () => {
               <PortavozIAView
                 currentUser={currentUser}
                 language={language}
-                onBack={() => setActiveTab('analyzer')}
+                onBack={() => setActiveTab('police-ads')}
               />
             </Suspense>
           )}
@@ -887,7 +887,7 @@ const App = () => {
              >
                <FunnelArchitectView 
                  result={funnelResult} 
-                 onBack={() => setActiveTab("analyzer")}
+                 onBack={() => setActiveTab("police-ads")}
                  language={language}
                />
              </FeatureGate>
@@ -899,7 +899,7 @@ const App = () => {
             <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
                <h2 className="text-2xl font-black text-white uppercase italic">Tab: {activeTab}</h2>
                <p className="text-rose-400 font-bold">No view mapped for this identifier.</p>
-               <button onClick={() => setActiveTab('analyzer')} className="bg-white/10 px-6 py-2 rounded-full text-xs font-black uppercase">Volver al Inicio</button>
+               <button onClick={() => setActiveTab('police-ads')} className="bg-white/10 px-6 py-2 rounded-full text-xs font-black uppercase">Volver al Inicio</button>
             </div>
           )}
         </Suspense>
@@ -940,7 +940,7 @@ const App = () => {
             if (fullItem.type === "search") {
               setResult(fullItem.result);
               setRestoreParams(fullItem.query);
-              setActiveTab("analyzer");
+              setActiveTab("police-ads");
             } else {
               setRestoredAudit(fullItem);
               if (fullItem.type === "image") setActiveTab("image-ai");
@@ -969,10 +969,10 @@ const App = () => {
             history={history}
             language={language}
             onClearHistory={() => setHistory([])}
-            onClose={() => { setIsAdminOpen(false); setActiveTab("analyzer"); }}
+            onClose={() => { setIsAdminOpen(false); setActiveTab("police-ads"); }}
           />
         )}
-        {isProfileOpen && <ProfileView user={currentUser} onUpdate={setCurrentUser} onClose={() => { setIsProfileOpen(false); setActiveTab("analyzer"); }} />}
+        {isProfileOpen && <ProfileView user={currentUser} onUpdate={setCurrentUser} onClose={() => { setIsProfileOpen(false); setActiveTab("police-ads"); }} />}
         {isGlossaryOpen && <GlossaryView onClose={() => setIsGlossaryOpen(false)} language={language} />}
         {isSecurityOpen && <SecurityPage onClose={() => setIsSecurityOpen(false)} language={language} />}
         {isContactOpen && <ContactPage onClose={() => setIsContactOpen(false)} language={language} />}
