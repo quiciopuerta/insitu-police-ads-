@@ -1,82 +1,131 @@
-<div align="center">
+# 👮‍♂️ INsitu Police Ads — Command Center & Ad Governance
 
-  
-  # INsitu Police Ads - Gestión Estratégica
-  
-  **Plataforma de Inteligencia Artificial para la automatización, monitorización y optimización de flujos publicitarios.**
-</div>
+> **Plataforma de Inteligencia Artificial y Gobernanza Publicitaria para Auditoría, Cumplimiento en Tiempo Real y Control Presupuestario de Campañas (Meta, Google Ads, TikTok y más).**
 
 ---
 
 ## 🚀 Descripción del Proyecto
 
-**INsitu Police Ads** es un subsistema aislado de INsitu AI diseñado para operar como centro de control estratégico y monitoreo de campañas. Permite a los analistas de tráfico y media buyers gestionar cuentas, generar scripts de automatización para Google Ads y mantener un control estricto sobre el rendimiento y las políticas de la pauta publicitaria.
+**INsitu Police Ads** es un ecosistema SaaS premium diseñado para media buyers, planners y directores de marketing. Combina un dashboard de control centralizado (React 19 + Vite 6 + TailwindCSS) con una **extensión de Chrome v3** y una arquitectura serverless en **Netlify Functions** sobre **Supabase PostgreSQL**. 
 
-El objetivo principal es proporcionar un ecosistema de monitorización independiente que se conecte de forma segura a la base de datos central.
+Permite auditar la calidad SEO/SEM, verificar copys y creativos con IA (incluyendo heatmaps de atención neuronal) y aplicar reglas de nomenclatura y presupuesto en tiempo real directamente sobre las plataformas publicitarias para evitar publicaciones erróneas u sobrecostes.
+
+---
+
+## 🧠 Arquitectura del Sistema
+
+El proyecto opera en tres capas integradas:
+
+```text
+Dashboard Web (React)  ⬅──[Sync de Políticas/Alertas]──➡  Chrome Extension (Content Scripts)
+         │                                                            │
+         └───────────➡ Backend (Netlify Functions) ⬅──────────────────┘
+                                     │
+                             [Supabase DB / PostgreSQL]
+```
+
+1. **Dashboard Web**: Interfaz de control corporativo donde se configuran clientes, asignaciones, límites de presupuesto seguros (Safe Budget Limits) y políticas de nomenclatura.
+2. **Chrome Extension (v3)**: Agente inyectable en Meta Ads Manager, Google Ads y 11+ plataformas que analiza inputs en caliente, resalta errores en rojo/verde y bloquea el botón "Publicar" ante infracciones críticas de gobernanza.
+3. **Serverless Backend (Netlify)**: Microservicios protegidos contra CORS y equipados con control de acceso (RBAC) y rate limiting (Upstash Redis) para gestionar la telemetría, alertas, cumplimiento y la rotación inteligente de llaves de Gemini.
+
+---
 
 ## ✨ Características Principales
 
-*   **🤖 Auditoría Creativa con IA**: Análisis neuro-visual de imágenes y videos publicitarios para predecir su efectividad y carga cognitiva.
-*   **🔍 Análisis de Competencia**: Investigación exhaustiva de competidores, incluyendo palabras clave, backlinks y estrategias de anuncios.
-*   **🎨 Gestión de Identidad de Marca**: Centralización y análisis de los valores, tono y estética de la marca para asegurar coherencia en todas las campañas.
-*   **📊 Reportes Automatizados**: Generación de informes detallados en PDF y exportación de datos en CSV para agencias y equipos de marketing.
-*   **🌍 Soporte Multilenguaje**: Interfaz y análisis disponibles en Español e Inglés.
+### 1. Gobernanza y Bloqueador de Publicación en Tiempo Real
+*   **Validación de Nomenclatura**: Comprobación estricta de formatos parametrizables (`PAÍS_CANAL_OBJETIVO_PRODUCTO_AÑO`) sobre inputs dinámicos en Meta Ads Manager y Google Ads.
+*   **Control Presupuestario "Safe Limit"**: Multiplica el presupuesto unitario por la duración detectada de la campaña y lanza overlays de advertencia si excede el límite asignado para la cuenta publicitaria.
+*   **Publish Blocker**: Bloquea y difumina los botones de publicar/confirmar nativos de Meta y Google Ads si existen errores de gobernanza activos.
+
+### 2. Auditoría Creativa con IA Multimodal
+*   **Neuro-Visual Image Audit**: Generación de heatmaps de atención cognitiva utilizando modelos predictivos para prever las áreas de mayor impacto del creativo.
+*   **Video Audit frame-by-frame**: Desglose secuencial de video con análisis estético y optimización del gancho (Hook) en los primeros 3 segundos.
+*   **Research Hub con Grounding**: Búsqueda científica de mercado con verificación de fuentes e indexación automatizada.
+
+### 3. Sincronización Omnipresente (Telemetry & Activity Sync)
+*   Las alertas presupuestarias e infracciones de nomenclatura detectadas en la extensión se reportan inmediatamente a `api-police-extension-activities.ts` para poblar el historial de cumplimiento y auditorías del Dashboard central.
+
+---
 
 ## 🛠️ Stack Tecnológico
 
-Este proyecto ha sido construido utilizando tecnologías modernas para garantizar rendimiento, escalabilidad y una experiencia de usuario premium:
+*   **Frontend**: React 19, TypeScript, Vite 6, TailwindCSS 3.4
+*   **Chrome Extension**: Manifest V3, Vanilla JS, Content Scripts selectivos e inyectores semánticos independientes por plataforma publicitaria.
+*   **Backend Serverless**: Netlify Functions (TypeScript), Supabase DB (PostgreSQL Client direct / Transaction Mode).
+*   **Procesamiento de IA**: SDK de Google Gemini (`@google/genai`) con Key Rotation integrada para conmutación por error ante límites de cuota.
+*   **Generación de Documentos**: jsPDF 4.2.0 (Exportación Pixel-Perfect de reportes de auditoría).
 
-*   **Frontend**: React 19, TypeScript, Vite
-*   **Desktop App (Local AI)**: Tauri v2, Rust, Ollama
-*   **Estilos**: TailwindCSS 3.4
-*   **Inteligencia Artificial**: Google Gemini 1.5 Pro / Flash (Cloud) y Llama 3 (Local)
-*   **Manejo de Estado**: React Hooks & Context API
-*   **Generación de Documentos**: jsPDF
-*   **Arquitectura Híbrida**: Permite ejecución 100% en la nube o ejecución local privada manteniendo el mismo control de límites y tokens de suscripción.
+---
 
-## 📦 Instalación y Configuración Local
+## 📦 Estructura del Repositorio
 
-Sigue estos pasos para ejecutar el proyecto en tu entorno local:
+```text
+├── extension/                 # Código fuente de la Chrome Extension v3
+│   ├── manifest.json          # Manifiesto V3 de Chrome
+│   ├── popup.html / popup.js  # Interfaz del Command Center lateral
+│   ├── validator.js           # Núcleo de lógica y regex de gobernanza
+│   ├── google_injector.js     # Script inyectado para Google Ads
+│   ├── meta_injector.js       # Script inyectado para Meta Ads Manager
+│   └── generic-validator.js   # Validador genérico para TikTok, LinkedIn, Pinterest, etc.
+│
+├── netlify/
+│   └── functions/             # Endpoints Serverless (Netlify Functions)
+│       ├── api-police-extension.ts             # Control de versiones de extensión
+│       ├── api-police-extension-activities.ts  # Registro de telemetría de la extensión
+│       ├── api-extension-compliance.ts         # Registro de cumplimiento/infracciones
+│       ├── api-police-alerts.ts                # Gestión de alertas presupuestarias
+│       ├── api-police-users.ts                 # Control de accesos y RBAC de la organización
+│       └── _lib/                               # Clases helpers (DB, CORS, Migraciones, Auth)
+│
+├── src/                       # Aplicación React Principal
+├── docs/                      # Manuales de despliegue, seguridad y compliance
+└── README.md                  # Este archivo de documentación
+```
 
-1.  **Clonar el repositorio**:
-    ```bash
-    git clone https://github.com/quiciopuerta/INsitu-AI-2.git
-    cd INsitu-AI-2
-    ```
+---
 
-2.  **Instalar dependencias**:
-    ```bash
-    npm install
-    ```
+## ⚙️ Configuración y Variables de Entorno
 
-3.  **Configurar variables de entorno**:
-    Crea un archivo `.env` en la raíz del proyecto y añade tu API Key de Gemini:
-    ```env
-    VITE_GEMINI_API_KEY=tu_api_key_aqui
-    ```
+Para levantar el Dashboard y los endpoints locales, crea un archivo `.env` en la raíz del proyecto:
 
-4.  **Iniciar el servidor de desarrollo**:
-    ```bash
-    npm run dev
-    ```
+```env
+VITE_GOOGLE_GENAI_API_KEY_PRIMARY=    # API Key principal de Google Gemini
+VITE_GOOGLE_GENAI_API_KEY_SECONDARY=  # API Key de respaldo
+DATABASE_URL=                         # String de conexión directa a Supabase PostgreSQL
+VITE_PAYPAL_CLIENT_ID=                # ID de cliente de PayPal
+VITE_EMAILJS_SERVICE_ID=              # Notificaciones de email
+```
 
-5.  **Ver en el navegador**:
-    Abre [http://localhost:3000](http://localhost:3000) para ver la aplicación.
+---
 
-## 📚 Documentación
+## 💻 Comandos de Desarrollo
 
-Para ver documentación detallada sobre seguridad, configuración avanzada (Upstash, Auto-Updates) y reportes QA, por favor consulta la carpeta `docs/`:
+### 1. Dashboard y Aplicación Frontend
+```bash
+npm install        # Instalar dependencias
+npm run dev        # Iniciar servidor Vite (puerto 5173)
+npm run build      # Compilar bundle de producción optimizado (dist/)
+```
 
-- `/docs/SECURITY_SUMMARY.md`
-- `/docs/FUNCTIONALITY_VERIFICATION.md`
-- `/docs/AUTO_UPDATES.md`
-- `/docs/extension/` (Guías de Extensión Chrome)
+### 2. Emular netlify Functions Locales
+Recomendado para probar la comunicación entre la extensión y las APIs de Netlify localmente:
+```bash
+npm install -g netlify-cli  # Instalar Netlify CLI si no lo tienes
+netlify dev                  # Iniciar emulador local (puerto 8888 o 3001)
+```
 
-## 🤝 Contribución
+---
 
-Este es un proyecto privado desarrollado por **INsitu AI**. Las contribuciones externas no están abiertas en este momento.
+## 🔌 Instalación de la Chrome Extension (Modo Desarrollador)
 
-## 📄 Licencia
+1. Abre Google Chrome y navega a `chrome://extensions/`.
+2. Activa el toggle **"Modo de desarrollador"** (Developer mode) en la esquina superior derecha.
+3. Haz clic en el botón **"Cargar descomprimida"** (Load unpacked) en la esquina superior izquierda.
+4. Selecciona la carpeta `extension/` que se encuentra en la raíz de este repositorio.
+5. Haz clic sobre el icono del escudo de **Police Ads** en tu barra de extensiones, inicia sesión con tu usuario de **insitu.company** ¡y comienza a auditar en tiempo real!
 
-Derechos reservados © 2026 INsitu AI.
-Desarrollado con ❤️ y ☕ por Franklin Sanchez y el equipo de Antigravity.
+---
+
+## 📄 Licencia y Derechos
+
+Derechos reservados © 2026 **insitu.company**. Desarrollado bajo los más estrictos estándares de seguridad y gobernanza corporativa para agencias de publicidad digital.
