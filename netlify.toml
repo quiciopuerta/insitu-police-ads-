@@ -7,7 +7,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["netlify/functions/_lib/vertex-creds.enc"]
+  included_files = ["netlify/functions/_lib/vertex-creds.enc", "node_modules/sql.js/dist/sql-wasm.wasm"]
 
 [functions."api-analyze-traffic"]
   timeout = 26
