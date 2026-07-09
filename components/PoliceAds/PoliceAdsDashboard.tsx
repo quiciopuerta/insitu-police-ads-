@@ -12,9 +12,10 @@ import { AuthUser } from '../../types';
 
 interface PoliceAdsDashboardProps {
   currentUser: AuthUser;
+  language?: string;
 }
 
-export const PoliceAdsDashboard: React.FC<PoliceAdsDashboardProps> = ({ currentUser }) => {
+export const PoliceAdsDashboard: React.FC<PoliceAdsDashboardProps> = ({ currentUser, language = 'es' }) => {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +69,15 @@ export const PoliceAdsDashboard: React.FC<PoliceAdsDashboardProps> = ({ currentU
           </h1>
           <p className="text-white/50 text-sm mt-1">Supervisión en tiempo real de presupuestos y campañas.</p>
         </div>
+        <a
+          href="https://chromewebstore.google.com/detail/insitucompany-command-cen/bnbcjlgkhngeenlkjgbocbjpdhbhkdmf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-magenta to-fuchsia-600 text-white text-xs font-black uppercase tracking-wider transition-all hover:shadow-[0_0_20px_rgba(255,71,123,0.3)] shrink-0 self-start md:self-auto"
+        >
+          <Download className="w-4 h-4" />
+          {language === 'es' ? 'Instalar Extensión Chrome' : 'Install Chrome Extension'}
+        </a>
       </div>
 
       <div className="flex items-center gap-2 border-b border-white/5 pb-2 overflow-x-auto hide-scrollbar">

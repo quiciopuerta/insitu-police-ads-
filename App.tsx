@@ -622,7 +622,7 @@ const App = () => {
                 <AuthGate onLogin={handleLogin} onCancel={() => {}} language={language} />
               ) : (
                 <AccessGuard toolId="police-ads" language={language} currentUser={currentUser}>
-                  <PoliceAdsDashboard currentUser={currentUser} />
+                  <PoliceAdsDashboard currentUser={currentUser} language={language} />
                 </AccessGuard>
               )}
             </div>

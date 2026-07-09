@@ -189,19 +189,24 @@ export const ExtensionWidget: React.FC<{ currentUser: AuthUser; language?: strin
             <div className="flex flex-col gap-2 items-end">
               <span className="text-xs text-[#ff477b] bg-[#ff477b]/10 px-3 py-1.5 rounded-lg border border-[#ff477b]/20 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" />
-                Requiere instalación local
+                {language === 'es' ? 'Requiere extensión' : 'Extension required'}
               </span>
+              <a
+                href="https://chromewebstore.google.com/detail/insitucompany-command-cen/bnbcjlgkhngeenlkjgbocbjpdhbhkdmf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-magenta to-fuchsia-600 text-white text-xs font-bold rounded-lg transition-all hover:shadow-[0_0_15px_rgba(255,71,123,0.4)]"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {language === 'es' ? 'Instalar desde Chrome Store' : 'Install from Chrome Store'}
+              </a>
               <a
                 href="/insitu-extension.zip"
                 download
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-xs rounded-md border border-white/10 transition-colors"
+                className="text-[10px] text-white/40 hover:text-white/60 transition-colors underline mt-1"
               >
-                <Download className="w-3.5 h-3.5" />
-                Descargar Extensión (v1.0.23)
+                {language === 'es' ? 'Descargar ZIP alternativo (v1.0.23)' : 'Download alternative ZIP (v1.0.23)'}
               </a>
-              <p className="text-[10px] text-white/40 text-right max-w-[160px]">
-                Descomprime e instala en chrome://extensions
-              </p>
             </div>
           )}
         </div>
